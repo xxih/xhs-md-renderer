@@ -1,18 +1,24 @@
 import React from 'react';
 import type {CSSProperties} from 'react';
+import {
+	BODY_BLOCK_GAP,
+	BODY_INSET_X,
+	CARD_PADDING_X,
+	CARD_PADDING_Y,
+	FOOTER_FONT_SIZE,
+	FOOTER_PADDING,
+	HANDLE_FONT_SIZE,
+	HEADER_GAP,
+	HEADER_INSET_X,
+	HEADER_PADDING_Y,
+	NAME_FONT_SIZE,
+	SUBHEADING_LINE_HEIGHT,
+	TITLE_FONT_SIZE,
+	TITLE_LINE_HEIGHT,
+	contentPx,
+	notePx
+} from './layout.js';
 import type {PageBlock, PageModel, RenderConfig} from './models.js';
-
-function noteScale(config: RenderConfig): number {
-	return config.width / 450;
-}
-
-function notePx(config: RenderConfig, value: number): number {
-	return Math.round(value * noteScale(config));
-}
-
-function contentPx(config: RenderConfig, value: number): number {
-	return Math.round(value * noteScale(config) * (config.fontSize / 16));
-}
 
 function blockTextStyle(config: RenderConfig): CSSProperties {
 	return {
@@ -220,11 +226,92 @@ function renderBlock(
 				fontFamily: config.fontFamily,
 				fontSize: contentPx(config, 20),
 				fontWeight: 700,
-				letterSpacing: '-0.02em'
+				letterSpacing: '-0.02em',
+				lineHeight: SUBHEADING_LINE_HEIGHT
 			}}
 		>
 			{block.text}
 		</h3>
+	);
+}
+
+function renderAvatar(config: RenderConfig): React.ReactNode {
+	const {profile} = config;
+
+	if (!profile.showAvatar) {
+		return null;
+	}
+
+	const avatarSize = notePx(config, 42);
+
+	return (
+		<div
+			style={{
+				position: 'relative',
+				width: avatarSize,
+				height: avatarSize,
+				flexShrink: 0,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center'
+			}}
+		>
+			<div
+				style={{
+					width: avatarSize,
+					height: avatarSize,
+					borderRadius: 999,
+					overflow: 'hidden',
+					background: profile.avatarSrc
+						? '#d6e4ff'
+						: `linear-gradient(135deg, ${config.theme.accentSoft}, ${config.theme.cardBackground})`,
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					color: config.theme.accent,
+					fontFamily: config.fontFamily,
+					fontSize: notePx(config, 14),
+					fontWeight: 800
+				}}
+			>
+				{profile.avatarSrc ? (
+					<img
+						src={profile.avatarSrc}
+						alt={profile.name || 'avatar'}
+						style={{
+							width: '100%',
+							height: '100%',
+							objectFit: 'cover'
+						}}
+					/>
+				) : (
+					(profile.name.slice(0, 1) || '图').toUpperCase()
+				)}
+			</div>
+			{profile.showVerifiedBadge ? (
+				<div
+					style={{
+						position: 'absolute',
+						right: notePx(config, -2),
+						bottom: notePx(config, -2),
+						width: notePx(config, 16),
+						height: notePx(config, 16),
+						borderRadius: 999,
+						background: '#0a84ff',
+						border: `${notePx(config, 2)}px solid ${config.theme.cardBackground}`,
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						color: '#ffffff',
+						fontSize: notePx(config, 10),
+						fontWeight: 800,
+						boxSizing: 'border-box'
+					}}
+				>
+					✓
+				</div>
+			) : null}
+		</div>
 	);
 }
 
@@ -233,6 +320,11 @@ export function XhsPageCard(props: {
 	config: RenderConfig;
 }): React.ReactElement {
 	const {config, page} = props;
+	const showHeader =
+		config.profile.showAvatar ||
+		config.profile.showName ||
+		config.profile.showHandle ||
+		config.profile.showDate;
 
 	return (
 		<div
@@ -250,7 +342,7 @@ export function XhsPageCard(props: {
 					width: '100%',
 					height: '100%',
 					display: 'flex',
-					padding: `${notePx(config, 32)}px ${notePx(config, 20)}px`,
+					padding: `${notePx(config, CARD_PADDING_Y)}px ${notePx(config, CARD_PADDING_X)}px`,
 					flexDirection: 'column',
 					gap: notePx(config, 10),
 					borderRadius: notePx(config, 8),
@@ -258,102 +350,97 @@ export function XhsPageCard(props: {
 					boxSizing: 'border-box'
 				}}
 			>
-				<div
-					style={{
-						display: 'flex',
-						justifyContent: 'space-between',
-						gap: notePx(config, 16),
-						paddingBottom: notePx(config, 10),
-						paddingLeft: notePx(config, 12),
-						paddingRight: notePx(config, 12),
-						paddingTop: notePx(config, 10)
-					}}
-				>
+				{showHeader ? (
 					<div
 						style={{
 							display: 'flex',
-							alignItems: 'center',
-							gap: notePx(config, 12)
+							justifyContent: 'space-between',
+							gap: notePx(config, HEADER_GAP),
+							paddingBottom: notePx(config, HEADER_PADDING_Y),
+							paddingLeft: notePx(config, HEADER_INSET_X),
+							paddingRight: notePx(config, HEADER_INSET_X),
+							paddingTop: notePx(config, HEADER_PADDING_Y)
 						}}
 					>
 						<div
 							style={{
-								width: notePx(config, 42),
-								height: notePx(config, 42),
-								borderRadius: 999,
-								background: config.theme.accentSoft,
 								display: 'flex',
 								alignItems: 'center',
-								justifyContent: 'center',
-								color: config.theme.accent,
-								fontFamily: config.fontFamily,
-								fontSize: notePx(config, 14),
-								fontWeight: 800
+								gap: notePx(config, 12)
 							}}
 						>
-							{config.profile.name.slice(0, 1).toUpperCase()}
+							{renderAvatar(config)}
+							{config.profile.showName || config.profile.showHandle ? (
+								<div
+									style={{
+										display: 'flex',
+										flexDirection: 'column',
+										gap: notePx(config, 1)
+									}}
+								>
+									{config.profile.showName ? (
+										<div
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												color: config.theme.textStrong,
+												fontFamily: config.fontFamily,
+												fontSize: notePx(config, NAME_FONT_SIZE),
+												fontWeight: 700
+											}}
+										>
+											{config.profile.name}
+										</div>
+									) : null}
+									{config.profile.showHandle ? (
+										<div
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												color: config.theme.textMuted,
+												fontFamily: config.fontFamily,
+												fontSize: notePx(config, HANDLE_FONT_SIZE)
+											}}
+										>
+											{config.profile.handle}
+										</div>
+									) : null}
+								</div>
+							) : null}
 						</div>
 						<div
 							style={{
 								display: 'flex',
 								flexDirection: 'column',
-								gap: notePx(config, 1)
+								alignItems: 'flex-end',
+								gap: notePx(config, 6)
 							}}
 						>
-							<div
-								style={{
-									display: 'flex',
-									alignItems: 'center',
-									color: config.theme.textStrong,
-									fontFamily: config.fontFamily,
-									fontSize: notePx(config, 16),
-									fontWeight: 700
-								}}
-							>
-								{config.profile.name}
-							</div>
-							<div
-								style={{
-									display: 'flex',
-									alignItems: 'center',
-									color: config.theme.textMuted,
-									fontFamily: config.fontFamily,
-									fontSize: notePx(config, 14)
-								}}
-							>
-								{config.profile.handle}
-							</div>
+							{config.profile.showDate ? (
+								<div
+									style={{
+										color: config.theme.textMuted,
+										fontFamily: config.fontFamily,
+										fontSize: notePx(config, FOOTER_FONT_SIZE)
+									}}
+								>
+									{config.profile.dateText}
+								</div>
+							) : null}
 						</div>
 					</div>
-					<div
-						style={{
-							display: 'flex',
-							flexDirection: 'column',
-							alignItems: 'flex-end',
-							gap: notePx(config, 6)
-						}}
-					>
-						{config.profile.showDate ? (
-							<div
-								style={{
-									color: config.theme.textMuted,
-									fontFamily: config.fontFamily,
-									fontSize: notePx(config, 13)
-								}}
-							>
-								{config.profile.dateText}
-							</div>
-						) : null}
-					</div>
-				</div>
+				) : null}
 
 				<div
 					style={{
 						display: 'flex',
+						flex: 1,
+						minHeight: 0,
 						flexDirection: 'column',
-						gap: 0,
-						marginLeft: notePx(config, 13),
-						marginRight: notePx(config, 13)
+						gap: notePx(config, BODY_BLOCK_GAP),
+						paddingBottom: config.layout.bodyBottomPadding,
+						paddingLeft: notePx(config, BODY_INSET_X),
+						paddingRight: notePx(config, BODY_INSET_X)
 					}}
 				>
 					<h1
@@ -361,44 +448,38 @@ export function XhsPageCard(props: {
 							margin: 0,
 							color: config.theme.textStrong,
 							fontFamily: config.fontFamily,
-							fontSize: contentPx(config, 24),
-							lineHeight: 1.5,
+							fontSize: contentPx(config, TITLE_FONT_SIZE),
+							lineHeight: TITLE_LINE_HEIGHT,
 							letterSpacing: '-0.01em'
 						}}
 					>
 						{page.title}
 					</h1>
-				</div>
 
-				<div
-					style={{
-						display: 'flex',
-						flexDirection: 'column',
-						gap: notePx(config, 18),
-						flex: 1,
-						marginLeft: notePx(config, 13),
-						marginRight: notePx(config, 13)
-					}}
-				>
-					{page.blocks.map((block, index) => renderBlock(block, index, config))}
+					<div
+						style={{
+							display: 'flex',
+							flexDirection: 'column',
+							gap: notePx(config, BODY_BLOCK_GAP),
+							flex: 1
+						}}
+					>
+						{page.blocks.map((block, index) => renderBlock(block, index, config))}
+					</div>
 				</div>
 
 				{config.profile.showFooter ? (
 					<div
 						style={{
-							position: 'absolute',
-							bottom: 0,
-							left: 0,
-							right: 0,
 							display: 'flex',
 							justifyContent: 'center',
 							alignItems: 'center',
 							gap: notePx(config, 14),
-							padding: notePx(config, 16),
+							padding: notePx(config, FOOTER_PADDING),
 							borderTop: `1px solid ${config.theme.border}`,
 							color: config.theme.textMuted,
 							fontFamily: config.fontFamily,
-							fontSize: notePx(config, 13),
+							fontSize: notePx(config, FOOTER_FONT_SIZE),
 							background: config.theme.cardBackground
 						}}
 					>

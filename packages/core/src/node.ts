@@ -6,10 +6,12 @@ import satori, { type SatoriOptions } from "satori";
 import type {
   ExportBundle,
   ExportManifest,
+  LayoutReport,
   PageModel,
   RenderConfig,
   RenderConfigOverrides
 } from "./models.js";
+import { analyzePageLayout } from "./layout.js";
 import { parseMarkdownToPages } from "./parser.js";
 import { XhsPageCard } from "./preview.js";
 import { createRenderConfig } from "./themes.js";
@@ -88,11 +90,13 @@ export async function buildExportBundle(input: {
       height: config.height,
       fontFamily: config.fontFamily,
       fontSize: config.fontSize,
+      layout: config.layout,
       profile: config.profile,
       themeId: config.theme.id
     },
     pages: []
   };
+  const layoutReport: LayoutReport = analyzePageLayout(pages, config, source.title);
 
   const bundlePages: ExportBundle["pages"] = [];
 
@@ -111,6 +115,7 @@ export async function buildExportBundle(input: {
 
   return {
     manifest,
+    layoutReport,
     pages: bundlePages
   };
 }
@@ -127,6 +132,7 @@ export async function writeExportBundle(input: {
 
   await mkdir(pagesDir, { recursive: true });
   await writeFile(join(outputDir, "manifest.json"), JSON.stringify(bundle.manifest, null, 2), "utf8");
+  await writeFile(join(outputDir, "layout-report.json"), JSON.stringify(bundle.layoutReport, null, 2), "utf8");
 
   const models = bundle.pages.map((page) => page.model);
   await writeFile(join(outputDir, "pages.json"), JSON.stringify(models, null, 2), "utf8");

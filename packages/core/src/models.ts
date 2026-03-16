@@ -41,8 +41,13 @@ export interface ParseOptions {
 }
 
 export interface ProfileConfig {
+  avatarSrc: string;
   name: string;
   handle: string;
+  showAvatar: boolean;
+  showName: boolean;
+  showHandle: boolean;
+  showVerifiedBadge: boolean;
   showDate: boolean;
   dateText: string;
   showFooter: boolean;
@@ -64,18 +69,25 @@ export interface ThemeConfig {
   codeBackground: string;
 }
 
+export interface LayoutConfig {
+  bodyBottomPadding: number;
+  warningThreshold: number;
+}
+
 export interface RenderConfig {
   width: number;
   height: number;
   fontFamily: string;
   fontSize: number;
   profile: ProfileConfig;
+  layout: LayoutConfig;
   theme: ThemeConfig;
 }
 
 export interface RenderConfigOverrides
-  extends Omit<Partial<RenderConfig>, "profile" | "theme"> {
+  extends Omit<Partial<RenderConfig>, "profile" | "theme" | "layout"> {
   profile?: Partial<ProfileConfig>;
+  layout?: Partial<LayoutConfig>;
   theme?: ThemeConfig;
   themeId?: string;
 }
@@ -92,15 +104,46 @@ export interface ExportManifest {
   version: 1;
   generatedAt: string;
   sourceTitle: string;
-  renderConfig: Pick<RenderConfig, "width" | "height" | "fontFamily" | "fontSize"> & {
+  renderConfig: Pick<RenderConfig, "width" | "height" | "fontFamily" | "fontSize" | "layout"> & {
     themeId: string;
     profile: ProfileConfig;
   };
   pages: ExportManifestPage[];
 }
 
+export type PageLayoutStatus = "ok" | "warning" | "overflow";
+
+export interface PageLayoutFeedback {
+  id: string;
+  index: number;
+  pageNumber: number;
+  title: string;
+  status: PageLayoutStatus;
+  availableContentHeight: number;
+  estimatedContentHeight: number;
+  remainingBottomSpace: number;
+  overflowAmount: number;
+  warningThreshold: number;
+  safeBottomPadding: number;
+  recommendation: string;
+}
+
+export interface LayoutReport {
+  version: 1;
+  generatedAt: string;
+  sourceTitle: string;
+  summary: {
+    totalPages: number;
+    okPages: number;
+    warningPages: number;
+    overflowPages: number;
+  };
+  pages: PageLayoutFeedback[];
+}
+
 export interface ExportBundle {
   manifest: ExportManifest;
+  layoutReport: LayoutReport;
   pages: Array<{
     model: PageModel;
     fileName: string;

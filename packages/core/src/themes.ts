@@ -27,7 +27,7 @@ export const FONT_FAMILY_OPTIONS = [
 export const THEMES: Record<string, ThemeConfig> = {
   default: {
     id: "default",
-    name: "Default",
+    name: "默认",
     background: "linear-gradient(180deg, #111114 0%, #151518 100%)",
     cardBackground: "#1c1c1e",
     accent: "#0a84ff",
@@ -40,7 +40,7 @@ export const THEMES: Record<string, ThemeConfig> = {
   },
   paper: {
     id: "paper",
-    name: "Paper",
+    name: "纸感",
     background: "linear-gradient(180deg, #f8f2e8 0%, #efe4d4 100%)",
     cardBackground: "#fffaf3",
     accent: "#b74d2c",
@@ -53,7 +53,7 @@ export const THEMES: Record<string, ThemeConfig> = {
   },
   studio: {
     id: "studio",
-    name: "Studio",
+    name: "工作室",
     background: "linear-gradient(180deg, #f1f5ff 0%, #dce8ff 100%)",
     cardBackground: "#ffffff",
     accent: "#1959d1",
@@ -80,13 +80,22 @@ export const DEFAULT_RENDER_CONFIG: RenderConfig = {
   fontFamily: FONT_FAMILY_OPTIONS[0].value,
   fontSize: 16,
   profile: {
+    avatarSrc: "",
     name: "小明",
     handle: "@xiaoming",
+    showAvatar: true,
+    showName: true,
+    showHandle: true,
+    showVerifiedBadge: true,
     showDate: true,
     dateText: defaultDateText(),
-    showFooter: true,
+    showFooter: false,
     footerLeft: "把问题拆开，一个个解决",
     footerRight: "今天的进度也要记下来"
+  },
+  layout: {
+    bodyBottomPadding: 180,
+    warningThreshold: 180
   },
   theme: THEMES.default!
 };
@@ -114,6 +123,10 @@ export function createRenderConfig(overrides: RenderConfigOverrides = {}): Rende
     profile: {
       ...defaultConfig.profile,
       ...overrides.profile
+    },
+    layout: {
+      ...defaultConfig.layout,
+      ...overrides.layout
     },
     theme: overrides.theme ?? getTheme(overrides.themeId)
   };
