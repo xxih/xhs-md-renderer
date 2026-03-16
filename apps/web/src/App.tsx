@@ -20,6 +20,23 @@ import {
 } from "@xhs-md/core";
 import type { PageModel, RenderConfig } from "@xhs-md/core";
 
+type BrowserRenderPayload = {
+  sourceTitle: string;
+  pages: PageModel[];
+  config: RenderConfig;
+};
+
+declare global {
+  interface Window {
+    __XHS_RENDER_PAYLOAD__?: BrowserRenderPayload;
+    __XHS_RENDER_STATUS__?: {
+      ready: boolean;
+      pageCount: number;
+      sourceTitle: string;
+    };
+  }
+}
+
 type EditorState = {
   markdown: string;
   themeId: string;
@@ -105,7 +122,88 @@ function downloadBlob(filename: string, blob: Blob): void {
   URL.revokeObjectURL(url);
 }
 
+function isRenderMode(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return new URLSearchParams(window.location.search).get("mode") === "render";
+}
+
+function RenderModeApp(): React.ReactElement {
+  const payload = useMemo<BrowserRenderPayload | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    return window.__XHS_RENDER_PAYLOAD__ ?? null;
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !payload) {
+      return;
+    }
+
+    window.__XHS_RENDER_STATUS__ = {
+      ready: true,
+      pageCount: payload.pages.length,
+      sourceTitle: payload.sourceTitle
+    };
+  }, [payload]);
+
+  if (!payload) {
+    return (
+      <main
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#f4f1eb",
+          color: "#34261d",
+          fontFamily: "'Avenir Next', 'PingFang SC', sans-serif"
+        }}
+      >
+        缺少渲染 payload
+      </main>
+    );
+  }
+
+  return (
+    <main
+      data-render-ready="true"
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        gap: 32,
+        padding: 24,
+        boxSizing: "border-box",
+        background: "#ebe5da"
+      }}
+    >
+      {payload.pages.map((page) => (
+        <div
+          key={page.id}
+          data-export-page={page.id}
+          data-export-index={page.index}
+          style={{
+            width: payload.config.width,
+            height: payload.config.height
+          }}
+        >
+          <XhsPageCard page={page} config={payload.config} />
+        </div>
+      ))}
+    </main>
+  );
+}
+
 function App(): React.ReactElement {
+  if (isRenderMode()) {
+    return <RenderModeApp />;
+  }
+
   const [editorState, setEditorState] = useState<EditorState>(() => readStoredEditorState());
   const [isExporting, setIsExporting] = useState(false);
   const [isResolvingImages, setIsResolvingImages] = useState(false);

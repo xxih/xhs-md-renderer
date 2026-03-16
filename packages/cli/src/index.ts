@@ -5,6 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { writeExportBundle } from "@xhs-md/core/node";
 import type { LayoutReport, RenderConfig, RenderConfigOverrides } from "@xhs-md/core";
+import { writeBrowserExportBundle } from "./browser-renderer.js";
 
 const DEFAULT_CONFIG_DIR_NAME = ".xhs-md-renderer";
 const DEFAULT_CONFIG_FILE_NAME = "render.json";
@@ -19,6 +20,7 @@ const DEFAULT_AVATAR_FILE_NAMES = [
 interface CliOptions {
   input: string;
   output: string;
+  renderer?: "auto" | "browser" | "node";
   title?: string;
   themeId?: string;
   fontFamily?: string;
@@ -54,6 +56,7 @@ xhs-md-render
 
 Usage:
   xhs-md-render --input <file.md> --output <dir> [--config-dir ./.xhs-md-renderer]
+    [--renderer auto|node|browser]
     [--title "My Note"] [--theme default]
     [--font-family "..."] [--font-size 16]
     [--name "小明"] [--handle "@xiaoming"]
@@ -89,6 +92,7 @@ function parseCliOptions(argv: string[]): CliOptions {
     options: {
       input: { type: "string", short: "i" },
       output: { type: "string", short: "o" },
+      renderer: { type: "string" },
       title: { type: "string", short: "t" },
       theme: { type: "string" },
       "font-family": { type: "string" },
@@ -123,6 +127,14 @@ function parseCliOptions(argv: string[]): CliOptions {
     input: values.input,
     output: values.output
   };
+
+  if (values.renderer !== undefined) {
+    if (values.renderer !== "auto" && values.renderer !== "browser" && values.renderer !== "node") {
+      throw new Error("--renderer must be one of: auto, browser, node.");
+    }
+
+    options.renderer = values.renderer;
+  }
 
   if (values.title !== undefined) {
     options.title = values.title;
@@ -441,6 +453,14 @@ function printLayoutSummary(layoutReport: LayoutReport): void {
   }
 }
 
+function shouldFallbackToBrowser(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return error.message.includes("Unsupported OpenType signature ttcf");
+}
+
 async function main(): Promise<void> {
   const options = parseCliOptions(process.argv.slice(2));
   const inputPath = resolve(options.input);
@@ -503,7 +523,29 @@ async function main(): Promise<void> {
     exportInput.title = resolvedTitle;
   }
 
-  const bundle = await writeExportBundle(exportInput);
+  let bundle;
+  let rendererUsed: "browser" | "node";
+
+  if (options.renderer === "browser") {
+    bundle = await writeBrowserExportBundle(exportInput);
+    rendererUsed = "browser";
+  } else if (options.renderer === "node") {
+    bundle = await writeExportBundle(exportInput);
+    rendererUsed = "node";
+  } else {
+    try {
+      bundle = await writeExportBundle(exportInput);
+      rendererUsed = "node";
+    } catch (error) {
+      if (!shouldFallbackToBrowser(error)) {
+        throw error;
+      }
+
+      console.warn("Node renderer does not support the requested TTC font. Falling back to browser renderer.");
+      bundle = await writeBrowserExportBundle(exportInput);
+      rendererUsed = "browser";
+    }
+  }
 
   if (configDir) {
     console.log(`Config directory: ${configDir}`);
@@ -521,6 +563,7 @@ async function main(): Promise<void> {
     console.log(`Avatar source: ${avatarOverride.avatarSourcePath}`);
   }
 
+  console.log(`Renderer: ${rendererUsed}`);
   printLayoutSummary(bundle.layoutReport);
   console.log(`Rendered ${bundle.pages.length} pages.`);
   console.log(`Output: ${outputPath}`);
