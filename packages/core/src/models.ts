@@ -10,6 +10,10 @@ export interface PageTextBlock {
   language?: string;
 }
 
+export interface PageDividerBlock {
+  type: "divider";
+}
+
 export interface PageListBlock {
   type: "list";
   ordered: boolean;
@@ -22,7 +26,7 @@ export interface PageImageBlock {
   url: string;
 }
 
-export type PageBlock = PageTextBlock | PageListBlock | PageImageBlock;
+export type PageBlock = PageTextBlock | PageListBlock | PageImageBlock | PageDividerBlock;
 
 export interface PageModel {
   id: string;
@@ -33,14 +37,17 @@ export interface PageModel {
 }
 
 export interface ParseOptions {
-  splitHeadingLevel?: number;
   documentTitle?: string;
 }
 
 export interface ProfileConfig {
   name: string;
   handle: string;
-  footer: string;
+  showDate: boolean;
+  dateText: string;
+  showFooter: boolean;
+  footerLeft: string;
+  footerRight: string;
 }
 
 export interface ThemeConfig {
@@ -60,10 +67,17 @@ export interface ThemeConfig {
 export interface RenderConfig {
   width: number;
   height: number;
-  splitHeadingLevel: number;
   fontFamily: string;
+  fontSize: number;
   profile: ProfileConfig;
   theme: ThemeConfig;
+}
+
+export interface RenderConfigOverrides
+  extends Omit<Partial<RenderConfig>, "profile" | "theme"> {
+  profile?: Partial<ProfileConfig>;
+  theme?: ThemeConfig;
+  themeId?: string;
 }
 
 export interface ExportManifestPage {
@@ -78,8 +92,9 @@ export interface ExportManifest {
   version: 1;
   generatedAt: string;
   sourceTitle: string;
-  renderConfig: Pick<RenderConfig, "width" | "height" | "splitHeadingLevel" | "fontFamily"> & {
+  renderConfig: Pick<RenderConfig, "width" | "height" | "fontFamily" | "fontSize"> & {
     themeId: string;
+    profile: ProfileConfig;
   };
   pages: ExportManifestPage[];
 }

@@ -3,6 +3,7 @@ export type {
   ExportManifest,
   ExportManifestPage,
   PageBlock,
+  PageDividerBlock,
   PageImageBlock,
   PageListBlock,
   PageModel,
@@ -10,9 +11,16 @@ export type {
   ParseOptions,
   ProfileConfig,
   RenderConfig,
+  RenderConfigOverrides,
   SourceDocument,
   ThemeConfig
 } from "./models.js";
-export { parseMarkdownToPages } from "./parser.js";
+export { PAGE_BREAK_MARKER, parseMarkdownToPages } from "./parser.js";
 export { XhsPageCard } from "./preview.js";
-export { createRenderConfig, DEFAULT_RENDER_CONFIG, getTheme, THEMES } from "./themes.js";
+export {
+  createRenderConfig,
+  DEFAULT_RENDER_CONFIG,
+  FONT_FAMILY_OPTIONS,
+  getTheme,
+  THEMES
+} from "./themes.js";

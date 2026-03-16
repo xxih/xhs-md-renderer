@@ -25,6 +25,8 @@ npm run build
 npm run dev:web
 ```
 
+While `npm run dev:web` is running, edits under `packages/core/src/preview.tsx` are served from source in dev mode, so the browser preview updates immediately after save.
+
 Use the CLI to render a Markdown file into image assets:
 
 ```bash
@@ -36,6 +38,10 @@ Or directly:
 ```bash
 npm run dev -w @xhs-md/cli -- --input ./examples/sample.md --output ./.tmp/sample-output
 ```
+
+## Paging Syntax
+
+Use `<!-- xhs-page -->` to start a new output page. Markdown headings stay as content; they no longer trigger pagination by themselves.
 
 ## Current scope
 

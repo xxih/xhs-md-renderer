@@ -3,7 +3,13 @@ import { dirname, join, resolve } from "node:path";
 import React from "react";
 import { Resvg } from "@resvg/resvg-js";
 import satori, { type SatoriOptions } from "satori";
-import type { ExportBundle, ExportManifest, PageModel, RenderConfig } from "./models.js";
+import type {
+  ExportBundle,
+  ExportManifest,
+  PageModel,
+  RenderConfig,
+  RenderConfigOverrides
+} from "./models.js";
 import { parseMarkdownToPages } from "./parser.js";
 import { XhsPageCard } from "./preview.js";
 import { createRenderConfig } from "./themes.js";
@@ -65,16 +71,13 @@ export async function buildExportBundle(input: {
   markdown: string;
   title?: string;
   outputDir?: string;
-  renderConfig?: Partial<RenderConfig> & { themeId?: string };
+  renderConfig?: RenderConfigOverrides;
 }): Promise<ExportBundle> {
   const config = createRenderConfig(input.renderConfig);
-  const parseOptions =
-    input.title === undefined
-      ? { splitHeadingLevel: config.splitHeadingLevel }
-      : { documentTitle: input.title, splitHeadingLevel: config.splitHeadingLevel };
-  const { pages, source } = parseMarkdownToPages(input.markdown, {
-    ...parseOptions
-  });
+  const { pages, source } = parseMarkdownToPages(
+    input.markdown,
+    input.title === undefined ? {} : { documentTitle: input.title }
+  );
 
   const manifest: ExportManifest = {
     version: 1,
@@ -83,8 +86,9 @@ export async function buildExportBundle(input: {
     renderConfig: {
       width: config.width,
       height: config.height,
-      splitHeadingLevel: config.splitHeadingLevel,
       fontFamily: config.fontFamily,
+      fontSize: config.fontSize,
+      profile: config.profile,
       themeId: config.theme.id
     },
     pages: []
@@ -115,7 +119,7 @@ export async function writeExportBundle(input: {
   markdown: string;
   title?: string;
   outputDir: string;
-  renderConfig?: Partial<RenderConfig> & { themeId?: string };
+  renderConfig?: RenderConfigOverrides;
 }): Promise<ExportBundle> {
   const bundle = await buildExportBundle(input);
   const outputDir = resolve(input.outputDir);

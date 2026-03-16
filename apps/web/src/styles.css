@@ -1,10 +1,10 @@
 :root {
-  font-family: "Iowan Old Style", "Georgia", serif;
-  color: #1d1d1f;
+  font-family: "Avenir Next", "PingFang SC", "Helvetica Neue", sans-serif;
+  color: #f3f5f7;
   background:
-    radial-gradient(circle at top left, rgba(255, 221, 188, 0.55), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(177, 211, 255, 0.45), transparent 28%),
-    linear-gradient(180deg, #f6f3ee 0%, #ebe4da 100%);
+    radial-gradient(circle at top left, rgba(255, 85, 85, 0.16), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(0, 122, 255, 0.18), transparent 30%),
+    linear-gradient(180deg, #0d0f12 0%, #12161c 100%);
 }
 
 * {
@@ -14,6 +14,7 @@
 body {
   margin: 0;
   min-height: 100vh;
+  background: transparent;
 }
 
 button,
@@ -27,19 +28,21 @@ button {
   border: 0;
   border-radius: 999px;
   padding: 0.75rem 1rem;
-  background: #1d4ed8;
+  background: linear-gradient(135deg, #0a84ff, #2563eb);
   color: #fff;
   cursor: pointer;
+  box-shadow: 0 14px 32px rgba(10, 132, 255, 0.22);
 }
 
 textarea,
 input,
 select {
   width: 100%;
-  border: 1px solid rgba(45, 57, 89, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
   padding: 0.9rem 1rem;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f4f6f8;
 }
 
 textarea {
@@ -57,11 +60,11 @@ textarea {
 
 .control-panel,
 .preview-panel {
-  border: 1px solid rgba(45, 57, 89, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 2rem;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(12, 15, 19, 0.72);
   backdrop-filter: blur(14px);
-  box-shadow: 0 20px 80px rgba(48, 38, 28, 0.08);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
 }
 
 .control-panel {
@@ -69,14 +72,18 @@ textarea {
   flex-direction: column;
   gap: 1rem;
   padding: 1rem;
+  max-height: calc(100vh - 3rem);
+  overflow: auto;
 }
 
 .hero-card {
   padding: 1.2rem 1.2rem 1.4rem;
   border-radius: 1.5rem;
   background:
-    linear-gradient(140deg, rgba(195, 221, 255, 0.9), rgba(255, 243, 228, 0.88)),
-    #fff;
+    radial-gradient(circle at top right, rgba(10, 132, 255, 0.26), transparent 32%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    #171b21;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .hero-card h1,
@@ -89,13 +96,13 @@ textarea {
 .hero-card p,
 .preview-header p {
   margin: 0;
-  color: #53483d;
+  color: #b0b7c3;
   line-height: 1.5;
 }
 
 .eyebrow {
   margin: 0;
-  color: #8f3b1f;
+  color: #7eb4ff;
   text-transform: uppercase;
   letter-spacing: 0.18em;
   font-size: 0.78rem;
@@ -108,15 +115,48 @@ textarea {
   gap: 0.8rem;
   padding: 1rem;
   border-radius: 1.5rem;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .panel-section label {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  color: #463b31;
+  color: #d8dce3;
   font-size: 0.95rem;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.field-span {
+  grid-column: 1 / -1;
+}
+
+.toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.toggle-field {
+  display: inline-flex;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.55rem !important;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.toggle-field input {
+  width: auto;
+  margin: 0;
 }
 
 .section-header {
@@ -129,6 +169,14 @@ textarea {
 .section-header h2 {
   margin: 0;
   font-size: 1.15rem;
+  color: #f5f7fa;
+}
+
+.section-hint {
+  margin: 0.3rem 0 0;
+  color: #9da7b5;
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
 .preview-panel {
@@ -137,45 +185,71 @@ textarea {
   gap: 1rem;
   padding: 1rem;
   overflow: hidden;
+  background:
+    radial-gradient(circle at top, rgba(10, 132, 255, 0.08), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
+    rgba(10, 12, 15, 0.82);
 }
 
 .preview-header {
   display: flex;
   justify-content: space-between;
   gap: 1.5rem;
-  align-items: end;
+  align-items: center;
   padding: 0.5rem 0.5rem 0;
+}
+
+.preview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.preview-meta span {
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: #c6ccd6;
+  font-size: 0.9rem;
 }
 
 .preview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(23rem, 1fr));
-  gap: 1.2rem;
+  grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
+  gap: 1.4rem;
   overflow: auto;
-  padding: 0.5rem;
+  padding: 0.75rem 0.5rem 1rem;
 }
 
 .page-frame {
   display: flex;
   justify-content: center;
-  padding: 1rem;
-  border-radius: 1.5rem;
+  align-items: flex-start;
+  min-height: 36rem;
+  padding: 1.25rem;
+  border-radius: 1.75rem;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(242, 236, 227, 0.92)),
-    #fff;
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 40%),
+    linear-gradient(180deg, rgba(24, 28, 33, 0.96), rgba(14, 16, 20, 0.98)),
+    #0d1014;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .page-scale {
-  width: 100%;
-  max-width: 22rem;
+  width: min(100%, calc(var(--page-width) * var(--preview-scale)));
   transform-origin: top center;
-  transform: scale(0.32);
-  margin-bottom: calc((1440px * 0.32 - 1440px) + 1rem);
+  transform: scale(var(--preview-scale));
+  margin-bottom: calc((var(--page-height) * var(--preview-scale) - var(--page-height)) + 1.25rem);
+  filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.28));
 }
 
 .page-scale > div {
-  width: 1080px;
-  height: 1440px;
+  width: var(--page-width);
+  height: var(--page-height);
+  border-radius: 2rem;
+  overflow: hidden;
 }
 
 @media (max-width: 980px) {
@@ -183,8 +257,20 @@ textarea {
     grid-template-columns: 1fr;
   }
 
+  .control-panel {
+    max-height: none;
+  }
+
   .preview-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-frame {
+    min-height: 30rem;
   }
 }

@@ -1,6 +1,43 @@
-import type { RenderConfig, ThemeConfig } from "./models.js";
+import type { RenderConfig, RenderConfigOverrides, ThemeConfig } from "./models.js";
+
+export const FONT_FAMILY_OPTIONS = [
+  {
+    label: "默认",
+    value:
+      "Optima, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', sans-serif"
+  },
+  {
+    label: "宋体",
+    value: "SimSun, 'Songti SC', serif"
+  },
+  {
+    label: "黑体",
+    value: "SimHei, 'Heiti SC', sans-serif"
+  },
+  {
+    label: "楷体",
+    value: "KaiTi, 'Kaiti SC', serif"
+  },
+  {
+    label: "微软雅黑",
+    value: "'Microsoft YaHei', 'PingFang SC', sans-serif"
+  }
+] as const;
 
 export const THEMES: Record<string, ThemeConfig> = {
+  default: {
+    id: "default",
+    name: "Default",
+    background: "linear-gradient(180deg, #111114 0%, #151518 100%)",
+    cardBackground: "#1c1c1e",
+    accent: "#0a84ff",
+    accentSoft: "rgba(10, 132, 255, 0.16)",
+    textStrong: "#f5f5f7",
+    textBody: "#f2f2f7",
+    textMuted: "#98989d",
+    border: "rgba(255, 255, 255, 0.08)",
+    codeBackground: "#2c2c2e"
+  },
   paper: {
     id: "paper",
     name: "Paper",
@@ -29,17 +66,29 @@ export const THEMES: Record<string, ThemeConfig> = {
   }
 };
 
+function defaultDateText(): string {
+  return new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date());
+}
+
 export const DEFAULT_RENDER_CONFIG: RenderConfig = {
-  width: 1080,
-  height: 1440,
-  splitHeadingLevel: 2,
-  fontFamily: "\"Arial Unicode MS\", \"Arial Unicode\", sans-serif",
+  width: 1800,
+  height: 2400,
+  fontFamily: FONT_FAMILY_OPTIONS[0].value,
+  fontSize: 16,
   profile: {
-    name: "Creator",
-    handle: "@creator",
-    footer: "Generated from Markdown with one shared core"
+    name: "小明",
+    handle: "@xiaoming",
+    showDate: true,
+    dateText: defaultDateText(),
+    showFooter: true,
+    footerLeft: "把问题拆开，一个个解决",
+    footerRight: "今天的进度也要记下来"
   },
-  theme: THEMES.paper!
+  theme: THEMES.default!
 };
 
 export function getTheme(themeId?: string): ThemeConfig {
@@ -50,14 +99,20 @@ export function getTheme(themeId?: string): ThemeConfig {
   return DEFAULT_RENDER_CONFIG.theme;
 }
 
-export function createRenderConfig(
-  overrides: Partial<RenderConfig> & { themeId?: string } = {}
-): RenderConfig {
-  return {
+export function createRenderConfig(overrides: RenderConfigOverrides = {}): RenderConfig {
+  const defaultConfig = {
     ...DEFAULT_RENDER_CONFIG,
-    ...overrides,
     profile: {
       ...DEFAULT_RENDER_CONFIG.profile,
+      dateText: defaultDateText()
+    }
+  };
+
+  return {
+    ...defaultConfig,
+    ...overrides,
+    profile: {
+      ...defaultConfig.profile,
       ...overrides.profile
     },
     theme: overrides.theme ?? getTheme(overrides.themeId)

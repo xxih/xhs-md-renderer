@@ -2,8 +2,11 @@ import { toString } from "mdast-util-to-string";
 import { unified } from "unified";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
-import type { Heading, Image, List, ListItem, Nodes, Paragraph, Parent, Root } from "mdast";
+import type { Heading, Image, ListItem, Nodes, Paragraph, Parent, Root } from "mdast";
 import type { PageBlock, PageModel, ParseOptions, SourceDocument } from "./models.js";
+
+export const PAGE_BREAK_MARKER = "<!-- xhs-page -->";
+const PAGE_BREAK_PATTERN = /^<!--\s*xhs-page\s*-->$/i;
 
 function slugify(input: string): string {
   return input
@@ -22,8 +25,8 @@ function createDocument(markdown: string, options: ParseOptions): SourceDocument
   };
 }
 
-function createPage(title: string, index: number): PageModel {
-  const safeTitle = title.trim() || `Page ${index + 1}`;
+function createPage(index: number, fallbackTitle: string): PageModel {
+  const safeTitle = fallbackTitle.trim() || `Page ${index + 1}`;
   return {
     id: `${index + 1}-${slugify(safeTitle) || "page"}`,
     index,
@@ -39,6 +42,18 @@ function collectListItemText(item: ListItem): string {
 
 function paragraphHasOnlyImage(node: Paragraph): node is Paragraph & { children: [Image] } {
   return node.children.length === 1 && node.children[0]?.type === "image";
+}
+
+function defaultPageTitle(sourceTitle: string, index: number): string {
+  return index === 0 ? sourceTitle : `Page ${index + 1}`;
+}
+
+function isFallbackPageTitle(page: PageModel, sourceTitle: string): boolean {
+  return page.title === defaultPageTitle(sourceTitle, page.index);
+}
+
+function isPageBreakNode(node: Nodes): boolean {
+  return node.type === "html" && PAGE_BREAK_PATTERN.test(node.value.trim());
 }
 
 function blockFromNode(node: Nodes): PageBlock | null {
@@ -67,6 +82,10 @@ function blockFromNode(node: Nodes): PageBlock | null {
         type: "list",
         ordered: Boolean(node.ordered),
         items: node.children.map(collectListItemText).filter(Boolean)
+      };
+    case "thematicBreak":
+      return {
+        type: "divider"
       };
     case "heading": {
       const text = toString(node).trim();
@@ -118,44 +137,45 @@ export function parseMarkdownToPages(markdown: string, options: ParseOptions = {
   source: SourceDocument;
   pages: PageModel[];
 } {
-  const splitHeadingLevel = options.splitHeadingLevel ?? 2;
   const source = createDocument(markdown, options);
   const root = unified().use(remarkParse).use(remarkGfm).parse(markdown) as Root;
   const pages: PageModel[] = [];
 
   let currentPage: PageModel | null = null;
-  let currentSectionTitle = source.title;
-  let manualBreakCount = 0;
 
-  const openPage = (title: string): void => {
+  const openPage = (): void => {
     pushPageIfUseful(pages, currentPage);
-    currentPage = createPage(title, pages.length);
-    currentSectionTitle = title;
-    manualBreakCount = 0;
+    currentPage = createPage(pages.length, defaultPageTitle(source.title, pages.length));
   };
 
   const ensurePage = (): PageModel => {
     if (!currentPage) {
-      openPage(source.title);
+      currentPage = createPage(pages.length, defaultPageTitle(source.title, pages.length));
     }
 
     return currentPage!;
   };
 
   for (const node of root.children) {
-    if (node.type === "heading" && node.depth <= splitHeadingLevel) {
-      openPage(toString(node as Heading));
-      continue;
-    }
-
-    if (node.type === "thematicBreak") {
-      const baseTitle = currentSectionTitle || source.title;
-      manualBreakCount += 1;
-      openPage(`${baseTitle} · ${manualBreakCount + 1}`);
+    if (isPageBreakNode(node)) {
+      if (currentPage) {
+        openPage();
+      }
       continue;
     }
 
     const page = ensurePage();
+
+    if (node.type === "heading") {
+      const text = toString(node as Heading).trim();
+
+      if (text && page.blocks.length === 0 && isFallbackPageTitle(page, source.title)) {
+        page.title = text;
+        page.sectionTitle = text;
+        continue;
+      }
+    }
+
     const block = blockFromNode(node);
 
     if (block) {
@@ -166,7 +186,7 @@ export function parseMarkdownToPages(markdown: string, options: ParseOptions = {
   pushPageIfUseful(pages, currentPage);
 
   if (pages.length === 0) {
-    pages.push(createPage(source.title, 0));
+    pages.push(createPage(0, source.title));
   }
 
   return { source, pages };
