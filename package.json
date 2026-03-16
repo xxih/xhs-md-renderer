@@ -1,0 +1,23 @@
+{
+  "name": "xhs-md-renderer",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @xhs-md/core && npm run build -w @xhs-md/cli && npm run build -w @xhs-md/web",
+    "typecheck": "npm run typecheck -w @xhs-md/core && npm run typecheck -w @xhs-md/cli && npm run typecheck -w @xhs-md/web",
+    "dev:web": "npm run dev -w @xhs-md/web",
+    "dev:cli": "npm run dev -w @xhs-md/cli -- --input ../../examples/sample.md --output ../../.tmp/sample-output"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0"
+  }
+}

@@ -1,0 +1,6 @@
+node_modules
+dist
+.DS_Store
+.tmp
+apps/web/dist
+nanospec/*/assets/note-to-red
