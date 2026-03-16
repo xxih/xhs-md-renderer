@@ -14,9 +14,11 @@ import {
   THEMES,
   XhsPageCard,
   createRenderConfig,
-  parseMarkdownToPages
+  markPageImagesPending,
+  parseMarkdownToPages,
+  resolvePageImagesInBrowser
 } from "@xhs-md/core";
-import type { RenderConfig } from "@xhs-md/core";
+import type { PageModel, RenderConfig } from "@xhs-md/core";
 
 type EditorState = {
   markdown: string;
@@ -106,6 +108,7 @@ function downloadBlob(filename: string, blob: Blob): void {
 function App(): React.ReactElement {
   const [editorState, setEditorState] = useState<EditorState>(() => readStoredEditorState());
   const [isExporting, setIsExporting] = useState(false);
+  const [isResolvingImages, setIsResolvingImages] = useState(false);
   const [exportMessage, setExportMessage] = useState("");
   const deferredMarkdown = useDeferredValue(editorState.markdown);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -133,6 +136,36 @@ function App(): React.ReactElement {
       }),
     [deferredMarkdown]
   );
+  const [pages, setPages] = useState<PageModel[]>(() => markPageImagesPending(parsed.pages));
+
+  useEffect(() => {
+    const pendingPages = markPageImagesPending(parsed.pages);
+    setPages(pendingPages);
+
+    let cancelled = false;
+    setIsResolvingImages(true);
+
+    void resolvePageImagesInBrowser(parsed.pages)
+      .then((resolvedPages: PageModel[]) => {
+        if (!cancelled) {
+          setPages(resolvedPages);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPages(pendingPages);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsResolvingImages(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [parsed.pages]);
 
   const previewScale = useMemo(() => Math.min(0.22, 400 / config.width), [config.width]);
   const canvasStyle = useMemo(
@@ -165,7 +198,7 @@ function App(): React.ReactElement {
   };
 
   const downloadPagesJson = (): void => {
-    const blob = new Blob([JSON.stringify(parsed.pages, null, 2)], {
+    const blob = new Blob([JSON.stringify(pages, null, 2)], {
       type: "application/json"
     });
     downloadBlob("pages.json", blob);
@@ -195,7 +228,7 @@ function App(): React.ReactElement {
           profile: config.profile,
           themeId: config.theme.id
         },
-        pages: parsed.pages.map((page) => ({
+        pages: pages.map((page) => ({
           id: page.id,
           index: page.index,
           title: page.title,
@@ -204,7 +237,7 @@ function App(): React.ReactElement {
         }))
       };
 
-      for (const page of parsed.pages) {
+      for (const page of pages) {
         const node = pageRefs.current[page.id];
 
         if (!node) {
@@ -228,11 +261,11 @@ function App(): React.ReactElement {
       }
 
       zip.file("manifest.json", JSON.stringify(manifest, null, 2));
-      zip.file("pages.json", JSON.stringify(parsed.pages, null, 2));
+      zip.file("pages.json", JSON.stringify(pages, null, 2));
 
       const zipBlob = await zip.generateAsync({ type: "blob" });
       downloadBlob(`xhs-pages-${Date.now()}.zip`, zipBlob);
-      setExportMessage(`已导出 ${parsed.pages.length} 张图片。`);
+      setExportMessage(`已导出 ${pages.length} 张图片。`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "导出失败。";
       setExportMessage(message);
@@ -275,8 +308,12 @@ function App(): React.ReactElement {
 
         <section className="panel-section toolbar-section">
           <div className="toolbar-row">
-            <button type="button" onClick={exportImageArchive} disabled={isExporting}>
-              {isExporting ? "导出中..." : "导出图片包"}
+            <button
+              type="button"
+              onClick={exportImageArchive}
+              disabled={isExporting || isResolvingImages}
+            >
+              {isExporting ? "导出中..." : isResolvingImages ? "解析图片中..." : "导出图片包"}
             </button>
             <button type="button" className="secondary-button" onClick={downloadPagesJson}>
               下载 pages.json
@@ -286,6 +323,9 @@ function App(): React.ReactElement {
             </button>
           </div>
           {exportMessage ? <p className="status-text">{exportMessage}</p> : null}
+          {isResolvingImages ? (
+            <p className="status-text">正在解析图片资源，完成后再导出会更稳定。</p>
+          ) : null}
         </section>
 
         <section className="panel-section compact-section">
@@ -506,7 +546,7 @@ function App(): React.ReactElement {
         <div className="preview-header">
           <div>
             <p className="eyebrow">实时预览</p>
-            <h2>共生成 {parsed.pages.length} 页</h2>
+            <h2>共生成 {pages.length} 页</h2>
           </div>
           <div className="preview-meta">
             <span>{config.width} x {config.height}</span>
@@ -516,7 +556,7 @@ function App(): React.ReactElement {
         </div>
 
         <div className="preview-grid">
-          {parsed.pages.map((page) => (
+          {pages.map((page) => (
             <div className="page-frame" key={page.id} style={canvasStyle}>
               <div className="page-stage">
                 <div className="page-scale">

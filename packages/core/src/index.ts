@@ -20,6 +20,23 @@ export type {
   ThemeConfig
 } from "./models.js";
 export {
+  DEFAULT_IMAGE_ASPECT_RATIO,
+  DEFAULT_IMAGE_HEIGHT,
+  MAX_IMAGE_HEIGHT,
+  MIN_IMAGE_HEIGHT,
+  dataUrlToBytes,
+  getImageAspectRatio,
+  getImageDisplayHeight,
+  isBlobUrl,
+  isBrowserRenderableImageReference,
+  isDataUrl,
+  isHttpUrl,
+  isLikelyRelativeImagePath,
+  markPageImagesPending,
+  parseImageDimensions,
+  resolvePageImagesInBrowser
+} from "./image.js";
+export {
   BODY_BLOCK_GAP,
   BODY_INSET_X,
   BODY_LINE_HEIGHT,
@@ -36,6 +53,7 @@ export {
   TITLE_FONT_SIZE,
   TITLE_LINE_HEIGHT,
   analyzePageLayout,
+  bodyContentWidth,
   contentPx,
   notePx,
   noteScale

@@ -24,6 +24,11 @@ export interface PageImageBlock {
   type: "image";
   alt: string;
   url: string;
+  src?: string;
+  width?: number;
+  height?: number;
+  status?: "pending" | "resolved" | "failed";
+  errorMessage?: string;
 }
 
 export type PageBlock = PageTextBlock | PageListBlock | PageImageBlock | PageDividerBlock;

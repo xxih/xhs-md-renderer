@@ -6,6 +6,12 @@ import type {
   PageModel,
   RenderConfig
 } from "./models.js";
+import {
+  DEFAULT_IMAGE_HEIGHT,
+  MAX_IMAGE_HEIGHT,
+  MIN_IMAGE_HEIGHT,
+  getImageDisplayHeight
+} from "./image.js";
 
 export const CARD_PADDING_Y = 32;
 export const CARD_PADDING_X = 20;
@@ -117,7 +123,7 @@ function footerHeight(config: RenderConfig): number {
   return notePx(config, FOOTER_PADDING) * 2 + notePx(config, FOOTER_FONT_SIZE) * 1.35 + 1;
 }
 
-function contentWidth(config: RenderConfig): number {
+export function bodyContentWidth(config: RenderConfig): number {
   return (
     config.width - notePx(config, CARD_PADDING_X) * 2 - notePx(config, BODY_INSET_X) * 2
   );
@@ -188,14 +194,30 @@ function estimateBlockHeight(block: PageBlock, width: number, config: RenderConf
   }
 
   if (block.type === "image") {
-    const captionHeight = estimateTextHeight(
-      block.alt || block.url,
-      width,
-      contentPx(config, 14),
-      BODY_LINE_HEIGHT
-    );
+    const baseHeight =
+      notePx(config, 12) * 2 +
+      getImageDisplayHeight({
+        image: block,
+        contentWidth: width,
+        minHeight: notePx(config, MIN_IMAGE_HEIGHT),
+        maxHeight: notePx(config, MAX_IMAGE_HEIGHT),
+        fallbackHeight: notePx(config, DEFAULT_IMAGE_HEIGHT)
+      });
 
-    return notePx(config, 16) * 2 + notePx(config, 140) + notePx(config, 12) + captionHeight;
+    if (block.status === "failed") {
+      return (
+        baseHeight +
+        notePx(config, 10) +
+        estimateTextHeight(
+          block.errorMessage || block.alt || block.url,
+          width,
+          contentPx(config, 13),
+          BODY_LINE_HEIGHT
+        )
+      );
+    }
+
+    return baseHeight;
   }
 
   return 1;
@@ -218,7 +240,7 @@ export function analyzePageLayout(
   config: RenderConfig,
   sourceTitle: string
 ): LayoutReport {
-  const width = contentWidth(config);
+  const width = bodyContentWidth(config);
   const availableHeight = contentAreaHeight(config);
   const pageFeedback = pages.map<PageLayoutFeedback>((page) => {
     const titleHeight = estimateTextHeight(

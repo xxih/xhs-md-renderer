@@ -104,6 +104,25 @@ This makes the CLI more automation-friendly for later AI usage, because the call
 
 Use `<!-- xhs-page -->` to start a new output page. Markdown headings stay as content; they no longer trigger pagination by themselves.
 
+## Markdown Images
+
+Standard Markdown image syntax `![alt](src)` now renders as real images in the shared page card instead of placeholders.
+
+Supported image sources:
+
+- CLI / Node export: local paths relative to the input Markdown file, absolute file paths, `http(s)` URLs, and `data:` URLs
+- Web preview: browser-accessible `http(s)` URLs, `data:` URLs, and any same-origin path the browser can actually load
+
+Current boundary:
+
+- Web preview does not have direct access to arbitrary local files referenced from a Markdown file on disk. When you use a local relative path such as `./assets/demo-figure.svg` in the browser editor, the preview shows an explicit failure state instead of pretending the image rendered.
+
+Examples:
+
+- local CLI sample: `examples/sample.md`
+- browser/data URL sample: `examples/image-web.md`
+- failure fallback sample: `examples/image-error.md`
+
 ## Current scope
 
 This repository only covers the terminal Markdown-to-image tool. It is designed to become the rendering backend for a larger `script + skill` workflow later, but that workflow is intentionally out of scope here.

@@ -15,9 +15,16 @@ import {
 	SUBHEADING_LINE_HEIGHT,
 	TITLE_FONT_SIZE,
 	TITLE_LINE_HEIGHT,
+	bodyContentWidth,
 	contentPx,
 	notePx
 } from './layout.js';
+import {
+	DEFAULT_IMAGE_HEIGHT,
+	MAX_IMAGE_HEIGHT,
+	MIN_IMAGE_HEIGHT,
+	getImageDisplayHeight
+} from './image.js';
 import type {PageBlock, PageModel, RenderConfig} from './models.js';
 
 function blockTextStyle(config: RenderConfig): CSSProperties {
@@ -162,44 +169,122 @@ function renderBlock(
 	}
 
 	if (block.type === 'image') {
+		const imageHeight = getImageDisplayHeight({
+			image: block,
+			contentWidth: bodyContentWidth(config),
+			minHeight: notePx(config, MIN_IMAGE_HEIGHT),
+			maxHeight: notePx(config, MAX_IMAGE_HEIGHT),
+			fallbackHeight: notePx(config, DEFAULT_IMAGE_HEIGHT)
+		});
+		const imageSrc = block.src || block.url;
+
+		if (block.status === 'pending') {
+			return (
+				<div
+					key={index}
+					style={{
+						display: 'flex',
+						flexDirection: 'column',
+						gap: notePx(config, 10),
+						borderRadius: notePx(config, 16),
+						padding: notePx(config, 14),
+						border: `1px dashed ${config.theme.border}`,
+						background: config.theme.codeBackground
+					}}
+				>
+					<div
+						style={{
+							height: imageHeight,
+							borderRadius: notePx(config, 12),
+							background: `linear-gradient(135deg, ${config.theme.accentSoft}, ${config.theme.cardBackground})`,
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							color: config.theme.accent,
+							fontFamily: config.fontFamily,
+							fontWeight: 700,
+							fontSize: contentPx(config, 16),
+							textAlign: 'center',
+							padding: notePx(config, 20)
+						}}
+					>
+						图片加载中
+					</div>
+				</div>
+			);
+		}
+
+		if (!imageSrc || block.status === 'failed') {
+			return (
+				<div
+					key={index}
+					style={{
+						display: 'flex',
+						flexDirection: 'column',
+						gap: notePx(config, 10),
+						borderRadius: notePx(config, 16),
+						padding: notePx(config, 14),
+						border: `1px dashed ${config.theme.border}`,
+						background: config.theme.codeBackground
+					}}
+				>
+					<div
+						style={{
+							height: imageHeight,
+							borderRadius: notePx(config, 12),
+							background: `linear-gradient(135deg, ${config.theme.accentSoft}, ${config.theme.cardBackground})`,
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							color: config.theme.accent,
+							fontFamily: config.fontFamily,
+							fontWeight: 700,
+							fontSize: contentPx(config, 16),
+							textAlign: 'center',
+							padding: notePx(config, 20)
+						}}
+					>
+						图片暂时无法渲染
+					</div>
+					<p
+						style={{
+							...textStyle,
+							fontSize: contentPx(config, 13),
+							color: config.theme.textMuted
+						}}
+					>
+						{block.errorMessage || block.alt || block.url}
+					</p>
+				</div>
+			);
+		}
+
 		return (
 			<div
 				key={index}
 				style={{
 					display: 'flex',
 					flexDirection: 'column',
-					gap: notePx(config, 12),
-					borderRadius: notePx(config, 12),
-					padding: notePx(config, 16),
-					border: `1px dashed ${config.theme.border}`,
-					background: config.theme.codeBackground
+					borderRadius: notePx(config, 16),
+					padding: notePx(config, 12),
+					border: `1px solid ${config.theme.border}`,
+					background: '#ffffff'
 				}}
 			>
-				<div
+				<img
+					src={imageSrc}
+					alt={block.alt || 'Image'}
+					width={bodyContentWidth(config)}
+					height={imageHeight}
 					style={{
-						height: notePx(config, 140),
 						borderRadius: notePx(config, 12),
-						background: `linear-gradient(135deg, ${config.theme.accentSoft}, ${config.theme.cardBackground})`,
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						color: config.theme.accent,
-						fontFamily: config.fontFamily,
-						fontWeight: 700,
-						fontSize: contentPx(config, 18)
+						width: '100%',
+						height: imageHeight,
+						objectFit: 'contain',
+						objectPosition: 'center',
+						background: '#ffffff'
 					}}
-				>
-					Image Placeholder
-				</div>
-				<p
-					style={{
-						...textStyle,
-						fontSize: contentPx(config, 14),
-						color: config.theme.textMuted
-					}}
-				>
-					{block.alt || block.url}
-				</p>
+				/>
 			</div>
 		);
 	}

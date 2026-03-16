@@ -15,7 +15,11 @@
 3. 能导出多张图
 4. 能被 CLI 和 Web 共用
 
+![一个用于验证 Markdown 图片渲染的本地示意图](./assets/demo-figure.svg)
+
 > 只要末端稳定，未来 agent 编排就不会一直返工。
+
+![示例配图](./assets/sample-figure.svg)
 
 <!-- xhs-page -->
 

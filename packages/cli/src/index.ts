@@ -486,10 +486,12 @@ async function main(): Promise<void> {
 
   const exportInput = {
     markdown,
+    markdownFilePath: inputPath,
     outputDir: outputPath,
     renderConfig: mergedRenderConfig
   } as {
     markdown: string;
+    markdownFilePath: string;
     outputDir: string;
     renderConfig: RenderConfigOverrides;
     title?: string;

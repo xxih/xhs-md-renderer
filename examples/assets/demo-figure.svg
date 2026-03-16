@@ -1,0 +1,11 @@
+<svg width="960" height="640" viewBox="0 0 960 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="960" height="640" rx="48" fill="#FFF7ED"/>
+  <rect x="64" y="64" width="832" height="512" rx="36" fill="#FB923C"/>
+  <rect x="112" y="112" width="280" height="416" rx="28" fill="#FFEDD5"/>
+  <rect x="432" y="132" width="416" height="52" rx="26" fill="#FED7AA"/>
+  <rect x="432" y="220" width="352" height="34" rx="17" fill="#FFEDD5"/>
+  <rect x="432" y="280" width="384" height="34" rx="17" fill="#FFEDD5"/>
+  <rect x="432" y="340" width="320" height="34" rx="17" fill="#FFEDD5"/>
+  <rect x="432" y="424" width="180" height="72" rx="36" fill="#7C2D12"/>
+  <text x="522" y="470" text-anchor="middle" font-size="28" font-weight="700" fill="#FFF7ED" font-family="PingFang SC, Microsoft YaHei, sans-serif">示意图</text>
+</svg>

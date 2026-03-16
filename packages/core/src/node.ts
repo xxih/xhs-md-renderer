@@ -12,6 +12,7 @@ import type {
   RenderConfigOverrides
 } from "./models.js";
 import { analyzePageLayout } from "./layout.js";
+import { resolvePageImagesForNode } from "./node-images.js";
 import { parseMarkdownToPages } from "./parser.js";
 import { XhsPageCard } from "./preview.js";
 import { createRenderConfig } from "./themes.js";
@@ -74,12 +75,15 @@ export async function buildExportBundle(input: {
   title?: string;
   outputDir?: string;
   renderConfig?: RenderConfigOverrides;
+  markdownFilePath?: string;
 }): Promise<ExportBundle> {
   const config = createRenderConfig(input.renderConfig);
-  const { pages, source } = parseMarkdownToPages(
+  const parsed = parseMarkdownToPages(
     input.markdown,
     input.title === undefined ? {} : { documentTitle: input.title }
   );
+  const pages = await resolvePageImagesForNode(parsed.pages, input.markdownFilePath);
+  const { source } = parsed;
 
   const manifest: ExportManifest = {
     version: 1,
@@ -125,6 +129,7 @@ export async function writeExportBundle(input: {
   title?: string;
   outputDir: string;
   renderConfig?: RenderConfigOverrides;
+  markdownFilePath?: string;
 }): Promise<ExportBundle> {
   const bundle = await buildExportBundle(input);
   const outputDir = resolve(input.outputDir);
