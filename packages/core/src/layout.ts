@@ -171,7 +171,50 @@ function estimateListHeight(
   return itemsHeight + itemGap * Math.max(0, block.items.length - 1);
 }
 
-function estimateBlockHeight(block: PageBlock, width: number, config: RenderConfig): number {
+function resolveDefaultImageDisplayHeight(
+  block: Extract<PageBlock, { type: "image" }>,
+  width: number,
+  config: RenderConfig
+): number {
+  return getImageDisplayHeight({
+    image: block,
+    contentWidth: width,
+    minHeight: notePx(config, MIN_IMAGE_HEIGHT),
+    maxHeight: notePx(config, MAX_IMAGE_HEIGHT),
+    fallbackHeight: notePx(config, DEFAULT_IMAGE_HEIGHT)
+  });
+}
+
+function estimateImageBlockHeight(
+  block: Extract<PageBlock, { type: "image" }>,
+  width: number,
+  config: RenderConfig,
+  imageDisplayHeight: number
+): number {
+  const baseHeight = notePx(config, 12) * 2 + imageDisplayHeight;
+
+  if (block.status === "failed") {
+    return (
+      baseHeight +
+      notePx(config, 10) +
+      estimateTextHeight(
+        block.errorMessage || block.alt || block.url,
+        width,
+        contentPx(config, 13),
+        BODY_LINE_HEIGHT
+      )
+    );
+  }
+
+  return baseHeight;
+}
+
+function estimateBlockHeight(
+  block: PageBlock,
+  width: number,
+  config: RenderConfig,
+  imageDisplayHeight?: number
+): number {
   if (block.type === "paragraph" || block.type === "quote") {
     return estimateTextHeight(block.text, width, contentPx(config, 16), BODY_LINE_HEIGHT);
   }
@@ -194,33 +237,122 @@ function estimateBlockHeight(block: PageBlock, width: number, config: RenderConf
   }
 
   if (block.type === "image") {
-    const baseHeight =
-      notePx(config, 12) * 2 +
-      getImageDisplayHeight({
-        image: block,
-        contentWidth: width,
-        minHeight: notePx(config, MIN_IMAGE_HEIGHT),
-        maxHeight: notePx(config, MAX_IMAGE_HEIGHT),
-        fallbackHeight: notePx(config, DEFAULT_IMAGE_HEIGHT)
-      });
-
-    if (block.status === "failed") {
-      return (
-        baseHeight +
-        notePx(config, 10) +
-        estimateTextHeight(
-          block.errorMessage || block.alt || block.url,
-          width,
-          contentPx(config, 13),
-          BODY_LINE_HEIGHT
-        )
-      );
-    }
-
-    return baseHeight;
+    return estimateImageBlockHeight(
+      block,
+      width,
+      config,
+      imageDisplayHeight ?? resolveDefaultImageDisplayHeight(block, width, config)
+    );
   }
 
   return 1;
+}
+
+function pageBlockGapTotal(blockCount: number, config: RenderConfig): number {
+  return blockCount > 1 ? notePx(config, BODY_BLOCK_GAP) * (blockCount - 1) : 0;
+}
+
+function pageTitleHeight(page: PageModel, width: number, config: RenderConfig): number {
+  return estimateTextHeight(
+    page.title,
+    width,
+    contentPx(config, TITLE_FONT_SIZE),
+    TITLE_LINE_HEIGHT
+  );
+}
+
+function blockHeightBudget(page: PageModel, config: RenderConfig, width: number): number {
+  return (
+    contentAreaHeight(config) -
+    pageTitleHeight(page, width, config) -
+    (page.blocks.length > 0 ? notePx(config, BODY_BLOCK_GAP) : 0) -
+    pageBlockGapTotal(page.blocks.length, config) -
+    config.layout.bodyBottomPadding
+  );
+}
+
+export function getPageImageDisplayHeights(
+  page: PageModel,
+  config: RenderConfig
+): Map<number, number> {
+  const width = bodyContentWidth(config);
+  const imageHeights = new Map<number, number>();
+  const imageCapacities: Array<{ index: number; capacity: number }> = [];
+  let fixedBlockHeights = 0;
+
+  for (const [index, block] of page.blocks.entries()) {
+    if (block.type !== "image") {
+      fixedBlockHeights += estimateBlockHeight(block, width, config);
+      continue;
+    }
+
+    const displayHeight = resolveDefaultImageDisplayHeight(block, width, config);
+    const minDisplayHeight = notePx(config, MIN_IMAGE_HEIGHT);
+    imageHeights.set(index, displayHeight);
+    fixedBlockHeights += estimateImageBlockHeight(block, width, config, displayHeight);
+    imageCapacities.push({
+      index,
+      capacity: Math.max(0, displayHeight - minDisplayHeight)
+    });
+  }
+
+  const shortage = Math.max(0, fixedBlockHeights - blockHeightBudget(page, config, width));
+
+  if (shortage === 0 || imageCapacities.length === 0) {
+    return imageHeights;
+  }
+
+  const totalCapacity = imageCapacities.reduce((sum, item) => sum + item.capacity, 0);
+
+  if (totalCapacity === 0) {
+    return imageHeights;
+  }
+
+  let remainingShortage = shortage;
+  let remainingCapacity = totalCapacity;
+
+  for (const item of imageCapacities) {
+    if (remainingShortage <= 0 || item.capacity <= 0) {
+      continue;
+    }
+
+    const proportionalReduction = Math.round((remainingShortage * item.capacity) / remainingCapacity);
+    const reduction = Math.min(item.capacity, Math.max(0, proportionalReduction));
+
+    if (reduction <= 0) {
+      continue;
+    }
+
+    imageHeights.set(item.index, (imageHeights.get(item.index) ?? 0) - reduction);
+    remainingShortage -= reduction;
+    remainingCapacity -= item.capacity;
+  }
+
+  if (remainingShortage > 0) {
+    for (const item of imageCapacities) {
+      if (remainingShortage <= 0) {
+        break;
+      }
+
+      const currentHeight = imageHeights.get(item.index);
+
+      if (currentHeight === undefined) {
+        continue;
+      }
+
+      const minDisplayHeight = notePx(config, MIN_IMAGE_HEIGHT);
+      const extraReduction = Math.min(remainingShortage, Math.max(0, currentHeight - minDisplayHeight));
+
+      if (extraReduction <= 0) {
+        continue;
+      }
+
+      imageHeights.set(item.index, currentHeight - extraReduction);
+      remainingShortage -= extraReduction;
+    }
+  }
+
+  return imageHeights;
 }
 
 function recommendationForStatus(status: PageLayoutStatus): string {
@@ -243,15 +375,12 @@ export function analyzePageLayout(
   const width = bodyContentWidth(config);
   const availableHeight = contentAreaHeight(config);
   const pageFeedback = pages.map<PageLayoutFeedback>((page) => {
-    const titleHeight = estimateTextHeight(
-      page.title,
-      width,
-      contentPx(config, TITLE_FONT_SIZE),
-      TITLE_LINE_HEIGHT
+    const titleHeight = pageTitleHeight(page, width, config);
+    const imageHeights = getPageImageDisplayHeights(page, config);
+    const blockHeights = page.blocks.map((block, index) =>
+      estimateBlockHeight(block, width, config, imageHeights.get(index))
     );
-    const blockHeights = page.blocks.map((block) => estimateBlockHeight(block, width, config));
-    const blockGapTotal =
-      page.blocks.length > 1 ? notePx(config, BODY_BLOCK_GAP) * (page.blocks.length - 1) : 0;
+    const blockGapTotal = pageBlockGapTotal(page.blocks.length, config);
     const estimatedContentHeight =
       titleHeight +
       (page.blocks.length > 0 ? notePx(config, BODY_BLOCK_GAP) : 0) +

@@ -17,6 +17,7 @@ import {
 	TITLE_LINE_HEIGHT,
 	bodyContentWidth,
 	contentPx,
+	getPageImageDisplayHeights,
 	notePx
 } from './layout.js';
 import {
@@ -40,7 +41,8 @@ function blockTextStyle(config: RenderConfig): CSSProperties {
 function renderBlock(
 	block: PageBlock,
 	index: number,
-	config: RenderConfig
+	config: RenderConfig,
+	imageDisplayHeight?: number
 ): React.ReactNode {
 	const textStyle = blockTextStyle(config);
 
@@ -169,13 +171,15 @@ function renderBlock(
 	}
 
 	if (block.type === 'image') {
-		const imageHeight = getImageDisplayHeight({
-			image: block,
-			contentWidth: bodyContentWidth(config),
-			minHeight: notePx(config, MIN_IMAGE_HEIGHT),
-			maxHeight: notePx(config, MAX_IMAGE_HEIGHT),
-			fallbackHeight: notePx(config, DEFAULT_IMAGE_HEIGHT)
-		});
+		const imageHeight =
+			imageDisplayHeight ??
+			getImageDisplayHeight({
+				image: block,
+				contentWidth: bodyContentWidth(config),
+				minHeight: notePx(config, MIN_IMAGE_HEIGHT),
+				maxHeight: notePx(config, MAX_IMAGE_HEIGHT),
+				fallbackHeight: notePx(config, DEFAULT_IMAGE_HEIGHT)
+			});
 		const imageSrc = block.src || block.url;
 
 		if (block.status === 'pending') {
@@ -405,6 +409,7 @@ export function XhsPageCard(props: {
 	config: RenderConfig;
 }): React.ReactElement {
 	const {config, page} = props;
+	const imageDisplayHeights = getPageImageDisplayHeights(page, config);
 	const showHeader =
 		config.profile.showAvatar ||
 		config.profile.showName ||
@@ -549,7 +554,9 @@ export function XhsPageCard(props: {
 							flex: 1
 						}}
 					>
-						{page.blocks.map((block, index) => renderBlock(block, index, config))}
+						{page.blocks.map((block, index) =>
+							renderBlock(block, index, config, imageDisplayHeights.get(index))
+						)}
 					</div>
 				</div>
 
