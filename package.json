@@ -1,5 +1,5 @@
 {
-  "name": "xhs-md-renderer",
+  "name": "@xhs-md/workspace",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -7,10 +7,13 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "npm run build -w @xhs-md/core && npm run build -w @xhs-md/cli && npm run build -w @xhs-md/web",
-    "typecheck": "npm run typecheck -w @xhs-md/core && npm run typecheck -w @xhs-md/cli && npm run typecheck -w @xhs-md/web",
+    "build": "npm run build -w @xhs-md/core && npm run build -w @xhs-md/web && npm run build -w xhs-md-renderer",
+    "typecheck": "npm run typecheck -w @xhs-md/core && npm run typecheck -w xhs-md-renderer && npm run typecheck -w @xhs-md/web",
+    "test": "node --import tsx --test tests/**/*.test.ts",
+    "verify": "npm run typecheck && npm run test && npm run build",
+    "pack:cli": "npm pack --dry-run -w xhs-md-renderer",
     "dev:web": "npm run dev -w @xhs-md/web",
-    "dev:cli": "npm run dev -w @xhs-md/cli -- --input ../../examples/sample.md --output ../../.tmp/sample-output"
+    "dev:cli": "npm run dev -w xhs-md-renderer -- --input ../../examples/sample.md --output ../../.tmp/sample-output"
   },
   "engines": {
     "node": ">=20.19.0"

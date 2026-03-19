@@ -6,12 +6,21 @@ import { chromium } from "playwright-core";
 import { prepareExportDocument } from "@xhs-md/core/node";
 import type { ExportBundle, RenderConfigOverrides } from "@xhs-md/core";
 
-const WEB_DIST_DIR = fileURLToPath(new URL("../../../apps/web/dist", import.meta.url));
+const WEB_DIST_CANDIDATES = [
+  fileURLToPath(new URL("../web-dist", import.meta.url)),
+  fileURLToPath(new URL("../../../apps/web/dist", import.meta.url))
+] as const;
 const DEFAULT_BROWSER_PATHS = [
+  process.env.XHS_MD_BROWSER_EXECUTABLE_PATH,
+  process.env.CHROME_PATH,
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   "/Applications/Chromium.app/Contents/MacOS/Chromium",
   "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
-  "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+  "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+  "/usr/bin/google-chrome",
+  "/usr/bin/google-chrome-stable",
+  "/usr/bin/chromium-browser",
+  "/usr/bin/chromium"
 ] as const;
 
 const MIME_TYPES: Record<string, string> = {
@@ -34,24 +43,32 @@ async function isFile(targetPath: string): Promise<boolean> {
 
 async function resolveBrowserExecutablePath(): Promise<string> {
   for (const browserPath of DEFAULT_BROWSER_PATHS) {
+    if (!browserPath) {
+      continue;
+    }
+
     if (await isFile(browserPath)) {
       return browserPath;
     }
   }
 
   throw new Error(
-    "No supported local Chromium browser found. Expected Google Chrome, Chromium, Edge, or Brave."
+    "No supported local Chromium browser found. Set XHS_MD_BROWSER_EXECUTABLE_PATH or install Chrome, Chromium, Edge, or Brave."
   );
 }
 
 async function ensureWebDistDir(): Promise<string> {
-  const distIndexPath = join(WEB_DIST_DIR, "index.html");
+  for (const rootDir of WEB_DIST_CANDIDATES) {
+    const distIndexPath = join(rootDir, "index.html");
 
-  if (!(await isFile(distIndexPath))) {
-    throw new Error(`Web dist not found at ${distIndexPath}. Run npm run build first.`);
+    if (await isFile(distIndexPath)) {
+      return rootDir;
+    }
   }
 
-  return WEB_DIST_DIR;
+  throw new Error(
+    `Web dist not found. Expected one of: ${WEB_DIST_CANDIDATES.join(", ")}. Run npm run build first.`
+  );
 }
 
 async function startStaticServer(rootDir: string): Promise<{

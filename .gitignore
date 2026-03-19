@@ -3,4 +3,5 @@ dist
 .DS_Store
 .tmp
 apps/web/dist
+packages/cli/web-dist
 nanospec/*/assets/note-to-red

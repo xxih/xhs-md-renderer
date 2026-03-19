@@ -2,6 +2,21 @@
 
 A modern workspace for one job: turn Markdown into Xiaohongshu-friendly image pages with one shared core.
 
+## Install
+
+Use the published CLI package:
+
+```bash
+npm install -g xhs-md-renderer
+xhs-md-render --input ./note.md --output ./.xhs-output
+```
+
+Or run it without a global install:
+
+```bash
+npx xhs-md-renderer --input ./note.md --output ./.xhs-output
+```
+
 ## Workspace
 
 - `packages/core`: parsing, page modeling, themes, shared preview component, and Node-side rendering/export helpers
@@ -21,7 +36,7 @@ A modern workspace for one job: turn Markdown into Xiaohongshu-friendly image pa
 
 ```bash
 npm install
-npm run build
+npm run verify
 npm run dev:web
 ```
 
@@ -36,8 +51,22 @@ npm run dev:cli
 Or directly:
 
 ```bash
-npm run dev -w @xhs-md/cli -- --input ./examples/sample.md --output ./.tmp/sample-output
+npm run dev -w xhs-md-renderer -- --input ./examples/sample.md --output ./.tmp/sample-output
 ```
+
+## Automation
+
+- `npm run typecheck`: run TypeScript checks for all workspaces
+- `npm run test`: run smoke tests for parsing and export preparation
+- `npm run build`: build core, web, and CLI workspaces
+- `npm run verify`: the local CI-equivalent gate used by GitHub Actions
+- `npm run pack:cli`: inspect the exact npm tarball contents before publishing
+
+The repository is prepared for:
+
+- GitHub Actions CI on pushes and pull requests
+- GitHub Pages deployment for `apps/web`
+- npm publish from GitHub Actions with Trusted Publishing
 
 ## CLI Config Directory
 

@@ -1,17 +1,58 @@
 {
-  "name": "@xhs-md/cli",
+  "name": "xhs-md-renderer",
   "version": "0.1.0",
   "type": "module",
+  "description": "Render Markdown into Xiaohongshu-friendly image pages from the command line.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xxih/xhs-md-renderer.git"
+  },
+  "homepage": "https://github.com/xxih/xhs-md-renderer#readme",
+  "bugs": {
+    "url": "https://github.com/xxih/xhs-md-renderer/issues"
+  },
   "bin": {
     "xhs-md-render": "./dist/index.js"
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "web-dist",
+    "README.md"
+  ],
+  "keywords": [
+    "markdown",
+    "xiaohongshu",
+    "cli",
+    "renderer",
+    "image-export"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "prepare-package": "node ../../scripts/prepare-cli-package.mjs",
+    "prepack": "npm run build -w @xhs-md/core && npm run build -w @xhs-md/web && npm run build && npm run prepare-package"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.19.0"
   },
   "dependencies": {
-    "@xhs-md/core": "^0.1.0",
-    "playwright-core": "^1.58.2"
+    "@resvg/resvg-js": "^2.6.0",
+    "mdast-util-to-string": "^4.0.0",
+    "playwright-core": "^1.58.2",
+    "react": "^19.2.0",
+    "remark-gfm": "^4.0.0",
+    "remark-parse": "^11.0.0",
+    "satori": "^0.18.0",
+    "unified": "^11.0.0"
+  },
+  "devDependencies": {
+    "@xhs-md/core": "^0.1.0"
   }
 }

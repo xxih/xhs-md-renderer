@@ -40,18 +40,27 @@ const FONT_CANDIDATES = [
   {
     names: ["PingFang SC", "Microsoft YaHei", "Helvetica Neue", "Helvetica", "Optima"],
     paths: [
+      "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+      "/usr/share/fonts/opentype/noto/NotoSansSC-Regular.otf",
+      "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
       "/System/Library/Fonts/Hiragino Sans GB.ttc",
       "/Library/Fonts/HelveticaNeue.ttc",
       "/System/Library/Fonts/Helvetica.ttc",
-      "/Library/Fonts/Arial Unicode.ttf"
+      "/Library/Fonts/Arial Unicode.ttf",
+      "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+      "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"
     ]
   },
   {
     names: ["Times New Roman", "Georgia", "serif", "sans-serif"],
     paths: [
+      "/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc",
       "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
       "/System/Library/Fonts/Supplemental/Georgia.ttf",
-      "/System/Library/Fonts/Helvetica.ttc"
+      "/System/Library/Fonts/Helvetica.ttc",
+      "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+      "/usr/share/fonts/truetype/liberation2/LiberationSerif-Regular.ttf",
+      "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     ]
   }
 ] as const;
