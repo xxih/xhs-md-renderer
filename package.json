@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "build": "npm run build -w @xhs-md/core && npm run build -w @xhs-md/web && npm run build -w xhs-md-renderer",
-    "typecheck": "npm run typecheck -w @xhs-md/core && npm run typecheck -w xhs-md-renderer && npm run typecheck -w @xhs-md/web",
+    "typecheck": "npm run typecheck -w @xhs-md/core && npm run build -w @xhs-md/core && npm run typecheck -w xhs-md-renderer && npm run typecheck -w @xhs-md/web",
     "test": "node --import tsx --test tests/**/*.test.ts",
     "verify": "npm run typecheck && npm run test && npm run build",
     "pack:cli": "npm pack --dry-run -w xhs-md-renderer",

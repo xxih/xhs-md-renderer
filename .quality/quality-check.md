@@ -22,6 +22,11 @@ Status: ready (local repository preparation)
   - Result: success (run with escalation because npm needed home-directory temp/log access outside sandbox)
   - Notes: confirmed published tarball includes `dist/`, vendored core runtime files, `web-dist/`, `package.json`, and `README.md`.
 
+
+- `npm run verify` (after CI/workflow fixes on 2026-03-21)
+  - Result: success
+  - Notes: confirmed the CI fix that builds `@xhs-md/core` before workspace typecheck, and confirmed the Pages workflow now requests automatic enablement.
+
 ## Remaining External Blockers
 
 - GitHub repository creation and push are not done yet.
