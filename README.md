@@ -1,6 +1,18 @@
 # xhs-md-renderer
 
-A modern workspace for one job: turn Markdown into Xiaohongshu-friendly image pages with one shared core.
+Turn Markdown into Xiaohongshu-friendly image pages from the CLI, with one shared rendering core for both automation and web preview.
+
+- npm: `https://www.npmjs.com/package/xhs-md-renderer`
+- demo: `https://xxih.github.io/xhs-md-renderer/`
+- changelog: `CHANGELOG.md`
+
+## Highlights
+
+- Render Markdown into export-ready image pages
+- Keep CLI export and web preview on the same page model
+- Detect `ok` / `warning` / `overflow` layout states for each page
+- Support project-level config via `.xhs-md-renderer/render.json`
+- Publish from GitHub Actions with Trusted Publishing and provenance
 
 ## Install
 
@@ -17,6 +29,21 @@ Or run it without a global install:
 npx xhs-md-renderer --input ./note.md --output ./.xhs-output
 ```
 
+## Quick start
+
+Render a Markdown file into an output directory:
+
+```bash
+xhs-md-renderer --input ./note.md --output ./.xhs-output
+```
+
+Expected output files:
+
+- `manifest.json`
+- `pages.json`
+- `layout-report.json`
+- `pages/page-01.png`, `pages/page-02.png`, ...
+
 ## Workspace
 
 - `packages/core`: parsing, page modeling, themes, shared preview component, and Node-side rendering/export helpers
@@ -32,7 +59,7 @@ npx xhs-md-renderer --input ./note.md --output ./.xhs-output
 - `satori` + `@resvg/resvg-js`
 - npm workspaces
 
-## Quick start
+## Local development
 
 ```bash
 npm install
@@ -54,6 +81,12 @@ Or directly:
 npm run dev -w xhs-md-renderer -- --input ./examples/sample.md --output ./.tmp/sample-output
 ```
 
+Useful links in the repo:
+
+- sample Markdown: `examples/sample.md`
+- browser-friendly image sample: `examples/image-web.md`
+- expected image-failure sample: `examples/image-error.md`
+
 ## Automation
 
 - `npm run typecheck`: run TypeScript checks for all workspaces
@@ -67,6 +100,7 @@ The repository is prepared for:
 - GitHub Actions CI on pushes and pull requests
 - GitHub Pages deployment for `apps/web`
 - npm publish from GitHub Actions with Trusted Publishing
+- GitHub Release creation from version tags
 
 ## CLI Config Directory
 
@@ -151,6 +185,17 @@ Examples:
 - local CLI sample: `examples/sample.md`
 - browser/data URL sample: `examples/image-web.md`
 - failure fallback sample: `examples/image-error.md`
+
+## Release flow
+
+Versioned releases follow this path:
+
+1. bump `packages/cli/package.json`
+2. push `main`
+3. push a tag such as `v0.1.1`
+4. let GitHub Actions publish the package and create the GitHub release
+
+Release history lives in `CHANGELOG.md`.
 
 ## Current scope
 
