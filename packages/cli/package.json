@@ -12,12 +12,11 @@
   "bugs": {
     "url": "https://github.com/xxih/xhs-md-renderer/issues"
   },
-  "bin": {
-    "xhs-md-render": "./dist/index.js"
-  },
+  "bin": "./bin/xhs-md-render.js",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
+    "bin",
     "dist",
     "web-dist",
     "README.md"

@@ -17,7 +17,7 @@ npx xhs-md-renderer --input ./note.md --output ./.xhs-output
 ## Usage
 
 ```bash
-xhs-md-render --input ./note.md --output ./.xhs-output
+xhs-md-renderer --input ./note.md --output ./.xhs-output
 ```
 
 Common options:

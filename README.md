@@ -8,7 +8,7 @@ Use the published CLI package:
 
 ```bash
 npm install -g xhs-md-renderer
-xhs-md-render --input ./note.md --output ./.xhs-output
+xhs-md-renderer --input ./note.md --output ./.xhs-output
 ```
 
 Or run it without a global install:
