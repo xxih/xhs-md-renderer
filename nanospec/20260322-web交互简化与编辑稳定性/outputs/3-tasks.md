@@ -20,4 +20,4 @@
 
 - [x] 4.1 更新版本号、changelog 与当前任务验收记录。
 - [x] 4.2 执行 `npm pack --dry-run -w xhs-md-renderer`，确认最终 tarball内容正确。
-- [ ] 4.3 提交 `main`、创建发布 tag 并推送，触发自动发布链路。
+- [x] 4.3 提交 `main`、创建发布 tag 并推送，触发自动发布链路。

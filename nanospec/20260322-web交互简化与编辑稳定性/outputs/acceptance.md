@@ -2,7 +2,7 @@
 
 ## 验收结论
 
-结论：本地实现与验证通过，待完成正式发布回写。
+结论：通过。
 
 ## 关键交付结果
 
@@ -47,8 +47,16 @@
   - 结果：成功
   - 说明：tarball 版本为 `0.1.3`，包含 `bin/`、`dist/`、`web-dist/` 与 `README.md`
 
-## 待回写
+### 正式发布结果
 
-- 提交 `main`
-- 推送 tag `v0.1.3`
-- 回写 GitHub Actions、npm 与 Pages 的正式发布证据
+- GitHub Actions
+  - `Publish npm package`：run id `23446818994`，状态 `completed/success`
+  - `Deploy web demo`：run id `23442293309`，状态 `completed/success`
+- GitHub Release
+  - `v0.1.3` 已创建并发布
+  - 地址：`https://github.com/xxih/xhs-md-renderer/releases/tag/v0.1.3`
+- npm registry
+  - `https://registry.npmjs.org/xhs-md-renderer/latest` 返回版本 `0.1.3`
+- GitHub Pages
+  - `https://xxih.github.io/xhs-md-renderer/` 已返回新版首页 HTML
+  - 页面资源指向：`/xhs-md-renderer/assets/index-DGMRUGOh.js` 与 `/xhs-md-renderer/assets/index-5-obOTgZ.css`

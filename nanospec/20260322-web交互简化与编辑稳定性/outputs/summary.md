@@ -24,4 +24,7 @@
 
 ## 后续收口
 
-- 还需将 `0.1.3` 提交到 `main` 并推送 tag `v0.1.3`，等待自动发布完成后回写最终发布证据。
+- `Release 0.1.3` 已提交到 `main`，tag `v0.1.3` 已推送。
+- `Publish npm package` workflow：`23446818994`，成功。
+- `Deploy web demo` workflow：`23442293309`，成功。
+- GitHub Release、npm `0.1.3` 与 Pages demo 均已完成更新。
