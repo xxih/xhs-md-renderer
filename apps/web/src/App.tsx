@@ -1,11 +1,4 @@
-import React, {
-  startTransition,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState
-} from "react";
+import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, CSSProperties } from "react";
 import { toBlob } from "html-to-image";
 import JSZip from "jszip";
@@ -359,7 +352,6 @@ function App(): React.ReactElement {
       }
 
       zip.file("manifest.json", JSON.stringify(manifest, null, 2));
-      zip.file("pages.json", JSON.stringify(pages, null, 2));
 
       const zipBlob = await zip.generateAsync({ type: "blob" });
       downloadBlob(`xhs-pages-${Date.now()}.zip`, zipBlob);
@@ -398,258 +390,287 @@ function App(): React.ReactElement {
   return (
     <div className="app-shell">
       <aside className="control-panel">
-        <div className="hero-card compact-card">
-          <p className="eyebrow">中文优先 Web 编辑器</p>
-          <h1>直接编辑、预览并导出图文图片</h1>
-          <p>用 {pageBreakMarker} 显式分页，左侧改配置，右侧看真实卡片效果。</p>
-        </div>
-
-        <section className="panel-section toolbar-section">
-          <div className="toolbar-row">
-            <button
-              type="button"
-              onClick={exportImageArchive}
-              disabled={isExporting || isResolvingImages}
-            >
-              {isExporting ? "导出中..." : isResolvingImages ? "解析图片中..." : "导出图片包"}
-            </button>
-            <button type="button" className="secondary-button" onClick={downloadPagesJson}>
-              下载 pages.json
-            </button>
-            <button type="button" className="secondary-button" onClick={resetEditor}>
-              恢复默认
-            </button>
+        <section className="panel-section composer-shell">
+          <div className="composer-header">
+            <div className="header-copy">
+              <p className="eyebrow">Web 图片编辑器</p>
+              <h1>先写正文，再导出图片</h1>
+              <p className="section-hint">
+                Markdown 是主工作区。低频配置和调试能力收进下方折叠面板。
+              </p>
+            </div>
+            <div className="toolbar-row primary-actions">
+              <button
+                type="button"
+                onClick={exportImageArchive}
+                disabled={isExporting || isResolvingImages}
+              >
+                {isExporting ? "导出中..." : isResolvingImages ? "解析图片中..." : "导出图片包"}
+              </button>
+              <button type="button" className="secondary-button" onClick={resetEditor}>
+                恢复默认
+              </button>
+            </div>
           </div>
+
           {exportMessage ? <p className="status-text">{exportMessage}</p> : null}
-          {isResolvingImages ? (
-            <p className="status-text">正在解析图片资源，完成后再导出会更稳定。</p>
+          {!exportMessage && isResolvingImages ? (
+            <p className="status-text">正在解析图片资源，完成后导出会更稳定。</p>
           ) : null}
-        </section>
 
-        <section className="panel-section compact-section">
-          <div className="section-header">
-            <div>
-              <h2>Markdown 内容</h2>
-              <p className="section-hint">使用 {pageBreakMarker} 开新页，标题只负责正文内容。</p>
-            </div>
-          </div>
-          <textarea
-            value={editorState.markdown}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-              startTransition(() => {
-                updateState({ markdown: nextValue });
-              });
-            }}
-          />
-        </section>
-
-        <section className="panel-section compact-section">
-          <div className="section-header">
-            <h2>画布与排版</h2>
-          </div>
-          <div className="field-grid compact-grid">
-            <label>
-              主题
-              <select
-                value={editorState.themeId}
-                onChange={(event) => updateState({ themeId: event.target.value })}
-              >
-                {Object.values(THEMES).map((theme) => (
-                  <option key={theme.id} value={theme.id}>
-                    {theme.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              字体
-              <select
-                value={editorState.fontFamily}
-                onChange={(event) => updateState({ fontFamily: event.target.value })}
-              >
-                {FONT_FAMILY_OPTIONS.map((option) => (
-                  <option key={option.label} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              字号
-              <input
-                type="number"
-                min={12}
-                max={24}
-                value={editorState.fontSize}
-                onChange={(event) =>
-                  updateState({
-                    fontSize: Number(event.target.value) || createDefaultEditorState().fontSize
-                  })
-                }
-              />
-            </label>
-          </div>
-        </section>
-
-        <section className="panel-section compact-section">
-          <div className="section-header">
-            <h2>身份信息</h2>
-          </div>
-          <div className="field-grid compact-grid">
-            <label>
-              名称
-              <input
-                value={editorState.profile.name}
-                onChange={(event) => updateProfile({ name: event.target.value })}
-              />
-            </label>
-
-            <label>
-              账号
-              <input
-                value={editorState.profile.handle}
-                onChange={(event) => updateProfile({ handle: event.target.value })}
-              />
-            </label>
-          </div>
-
-          <div className="avatar-row">
-            <div className="avatar-preview">
-              {editorState.profile.avatarSrc ? (
-                <img src={editorState.profile.avatarSrc} alt="头像预览" />
-              ) : (
-                <span>{(editorState.profile.name.slice(0, 1) || "图").toUpperCase()}</span>
-              )}
-            </div>
-            <div className="avatar-actions">
-              <div className="toolbar-row compact-buttons">
-                <button type="button" className="secondary-button" onClick={() => avatarInputRef.current?.click()}>
-                  上传头像
-                </button>
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={() => updateProfile({ avatarSrc: "" })}
-                >
-                  清空头像
-                </button>
+          <div className="editor-card">
+            <div className="section-header">
+              <div>
+                <h2>Markdown 正文</h2>
+                <p className="section-hint">标题仍然是正文内容；用分页标记显式开新页。</p>
               </div>
-              <p className="section-hint">头像会保存在当前浏览器中，刷新后仍会恢复。</p>
+              <div className="editor-meta">
+                <span>{pages.length} 页</span>
+                <span>{config.theme.name}</span>
+              </div>
             </div>
-            <input
-              ref={avatarInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden-input"
-              onChange={handleAvatarUpload}
+            <textarea
+              className="markdown-editor"
+              spellCheck={false}
+              value={editorState.markdown}
+              onChange={(event) => updateState({ markdown: event.target.value })}
             />
+            <div className="editor-footer">
+              <span>分页标记</span>
+              <code>{pageBreakMarker}</code>
+            </div>
           </div>
-        </section>
 
-        <section className="panel-section compact-section">
-          <div className="section-header">
-            <h2>非正文元素</h2>
-          </div>
-          <div className="toggle-grid">
-            <label className="toggle-field">
-              <input
-                type="checkbox"
-                checked={editorState.profile.showAvatar}
-                onChange={(event) => updateProfile({ showAvatar: event.target.checked })}
-              />
-              <span>头像</span>
-            </label>
-            <label className="toggle-field">
-              <input
-                type="checkbox"
-                checked={editorState.profile.showVerifiedBadge}
-                onChange={(event) => updateProfile({ showVerifiedBadge: event.target.checked })}
-              />
-              <span>认证标志</span>
-            </label>
-            <label className="toggle-field">
-              <input
-                type="checkbox"
-                checked={editorState.profile.showName}
-                onChange={(event) => updateProfile({ showName: event.target.checked })}
-              />
-              <span>名称</span>
-            </label>
-            <label className="toggle-field">
-              <input
-                type="checkbox"
-                checked={editorState.profile.showHandle}
-                onChange={(event) => updateProfile({ showHandle: event.target.checked })}
-              />
-              <span>账号</span>
-            </label>
-            <label className="toggle-field">
-              <input
-                type="checkbox"
-                checked={editorState.profile.showDate}
-                onChange={(event) => updateProfile({ showDate: event.target.checked })}
-              />
-              <span>日期</span>
-            </label>
-            <label className="toggle-field">
-              <input
-                type="checkbox"
-                checked={editorState.profile.showFooter}
-                onChange={(event) => updateProfile({ showFooter: event.target.checked })}
-              />
-              <span>页脚</span>
-            </label>
-          </div>
-        </section>
+          <section className="panel-section settings-shell">
+            <div className="section-header">
+              <div>
+                <h2>按需微调</h2>
+                <p className="section-hint">常规写作先完成，样式和调试设置再按需展开。</p>
+              </div>
+            </div>
 
-        <section className="panel-section compact-section">
-          <div className="section-header">
-            <h2>日期与页脚文案</h2>
-          </div>
-          <div className="field-grid compact-grid">
-            <label className="field-span">
-              日期文案
-              <input
-                value={editorState.profile.dateText}
-                disabled={!editorState.profile.showDate}
-                onChange={(event) => updateProfile({ dateText: event.target.value })}
-              />
-            </label>
+            <details className="settings-group">
+              <summary>画布与排版</summary>
+              <div className="settings-body field-grid compact-grid">
+                <label>
+                  主题
+                  <select
+                    value={editorState.themeId}
+                    onChange={(event) => updateState({ themeId: event.target.value })}
+                  >
+                    {Object.values(THEMES).map((theme) => (
+                      <option key={theme.id} value={theme.id}>
+                        {theme.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-            <label>
-              页脚左文案
-              <input
-                value={editorState.profile.footerLeft}
-                disabled={!editorState.profile.showFooter}
-                onChange={(event) => updateProfile({ footerLeft: event.target.value })}
-              />
-            </label>
+                <label>
+                  字体
+                  <select
+                    value={editorState.fontFamily}
+                    onChange={(event) => updateState({ fontFamily: event.target.value })}
+                  >
+                    {FONT_FAMILY_OPTIONS.map((option) => (
+                      <option key={option.label} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-            <label>
-              页脚右文案
-              <input
-                value={editorState.profile.footerRight}
-                disabled={!editorState.profile.showFooter}
-                onChange={(event) => updateProfile({ footerRight: event.target.value })}
-              />
-            </label>
-          </div>
+                <label>
+                  字号
+                  <input
+                    type="number"
+                    min={12}
+                    max={24}
+                    value={editorState.fontSize}
+                    onChange={(event) =>
+                      updateState({
+                        fontSize: Number(event.target.value) || createDefaultEditorState().fontSize
+                      })
+                    }
+                  />
+                </label>
+              </div>
+            </details>
+
+            <details className="settings-group" open>
+              <summary>身份信息</summary>
+              <div className="settings-body">
+                <div className="field-grid compact-grid">
+                  <label>
+                    名称
+                    <input
+                      value={editorState.profile.name}
+                      onChange={(event) => updateProfile({ name: event.target.value })}
+                    />
+                  </label>
+
+                  <label>
+                    账号
+                    <input
+                      value={editorState.profile.handle}
+                      onChange={(event) => updateProfile({ handle: event.target.value })}
+                    />
+                  </label>
+                </div>
+
+                <div className="avatar-row">
+                  <div className="avatar-preview">
+                    {editorState.profile.avatarSrc ? (
+                      <img src={editorState.profile.avatarSrc} alt="头像预览" />
+                    ) : (
+                      <span>{(editorState.profile.name.slice(0, 1) || "图").toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="avatar-actions">
+                    <div className="toolbar-row compact-buttons">
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => avatarInputRef.current?.click()}
+                      >
+                        上传头像
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => updateProfile({ avatarSrc: "" })}
+                      >
+                        清空头像
+                      </button>
+                    </div>
+                    <p className="section-hint">头像会保存在当前浏览器中，刷新后仍会恢复。</p>
+                  </div>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden-input"
+                    onChange={handleAvatarUpload}
+                  />
+                </div>
+              </div>
+            </details>
+
+            <details className="settings-group">
+              <summary>页面元素</summary>
+              <div className="settings-body">
+                <div className="toggle-grid">
+                  <label className="toggle-field">
+                    <input
+                      type="checkbox"
+                      checked={editorState.profile.showAvatar}
+                      onChange={(event) => updateProfile({ showAvatar: event.target.checked })}
+                    />
+                    <span>头像</span>
+                  </label>
+                  <label className="toggle-field">
+                    <input
+                      type="checkbox"
+                      checked={editorState.profile.showVerifiedBadge}
+                      onChange={(event) =>
+                        updateProfile({ showVerifiedBadge: event.target.checked })
+                      }
+                    />
+                    <span>认证标志</span>
+                  </label>
+                  <label className="toggle-field">
+                    <input
+                      type="checkbox"
+                      checked={editorState.profile.showName}
+                      onChange={(event) => updateProfile({ showName: event.target.checked })}
+                    />
+                    <span>名称</span>
+                  </label>
+                  <label className="toggle-field">
+                    <input
+                      type="checkbox"
+                      checked={editorState.profile.showHandle}
+                      onChange={(event) => updateProfile({ showHandle: event.target.checked })}
+                    />
+                    <span>账号</span>
+                  </label>
+                  <label className="toggle-field">
+                    <input
+                      type="checkbox"
+                      checked={editorState.profile.showDate}
+                      onChange={(event) => updateProfile({ showDate: event.target.checked })}
+                    />
+                    <span>日期</span>
+                  </label>
+                  <label className="toggle-field">
+                    <input
+                      type="checkbox"
+                      checked={editorState.profile.showFooter}
+                      onChange={(event) => updateProfile({ showFooter: event.target.checked })}
+                    />
+                    <span>页脚</span>
+                  </label>
+                </div>
+
+                <div className="field-grid compact-grid">
+                  <label className="field-span">
+                    日期文案
+                    <input
+                      value={editorState.profile.dateText}
+                      disabled={!editorState.profile.showDate}
+                      onChange={(event) => updateProfile({ dateText: event.target.value })}
+                    />
+                  </label>
+
+                  <label>
+                    页脚左文案
+                    <input
+                      value={editorState.profile.footerLeft}
+                      disabled={!editorState.profile.showFooter}
+                      onChange={(event) => updateProfile({ footerLeft: event.target.value })}
+                    />
+                  </label>
+
+                  <label>
+                    页脚右文案
+                    <input
+                      value={editorState.profile.footerRight}
+                      disabled={!editorState.profile.showFooter}
+                      onChange={(event) => updateProfile({ footerRight: event.target.value })}
+                    />
+                  </label>
+                </div>
+              </div>
+            </details>
+
+            <details className="settings-group subtle-group">
+              <summary>高级操作</summary>
+              <div className="settings-body">
+                <p className="section-hint">
+                  `pages.json` 仅供调试或二次处理使用，不属于普通图片导出路径。
+                </p>
+                <div className="toolbar-row compact-buttons">
+                  <button type="button" className="secondary-button" onClick={downloadPagesJson}>
+                    下载 pages.json
+                  </button>
+                </div>
+              </div>
+            </details>
+          </section>
         </section>
       </aside>
 
       <main className="preview-panel">
         <div className="preview-header">
           <div>
-            <p className="eyebrow">实时预览</p>
-            <h2>共生成 {pages.length} 页</h2>
+            <p className="eyebrow">导出预览</p>
+            <h2>{pages.length} 页图片结果</h2>
+            <p>右侧始终显示当前导出的实际卡片效果。</p>
           </div>
           <div className="preview-meta">
+            <span>{config.theme.name}</span>
             <span>{config.width} x {config.height}</span>
             <span>{Math.round(previewScale * 100)}% 缩放</span>
-            <span>{config.theme.name}</span>
           </div>
         </div>
 

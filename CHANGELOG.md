@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.3] - 2026-03-23
+
+### Changed
+
+- Simplified the web editor so image export is the primary action and `pages.json` moves into an advanced/debug section.
+- Reworked the web layout to prioritize the Markdown editor and collapse low-frequency settings into lighter-weight groups.
+
+### Fixed
+
+- Fixed the Web Markdown editor so pressing Enter in the middle of the document no longer jumps the caret to the end.
+- Removed `pages.json` from the default Web image export archive so the direct output path stays focused on images plus manifest.
+
 ## [0.1.2] - 2026-03-22
 
 ### Added
